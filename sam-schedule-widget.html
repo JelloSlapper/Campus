@@ -1,0 +1,1202 @@
+<!--
+  SAM Schedule Widget
+  Embed this in a Squarespace Code Block.
+-->
+
+<style>
+  .sam-widget { font-family: inherit; font-size: inherit; max-width: 100%; }
+
+  /* --- Tabs --- */
+  .sam-tabs { display: flex; border-bottom: 2px solid #222; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .sam-tab {
+    background: none; border: none; border-bottom: 3px solid transparent;
+    padding: 0.6rem 1.5rem; font-size: 1rem; font-family: inherit;
+    cursor: pointer; margin-bottom: -2px; transition: background 0.15s;
+  }
+  .sam-tab.active { border-bottom-color: #222; font-weight: 600; }
+  .sam-tab:hover:not(.active) { background: #f5f5f5; }
+
+  /* --- Week strip --- */
+  .sam-week-strip { display: flex; gap: 4px; margin-bottom: 0.75rem; }
+  .sam-week-day {
+    flex: 1; padding: 6px 4px; border: 1px solid #ddd; background: #fff;
+    cursor: pointer; border-radius: 6px; display: flex; flex-direction: column;
+    align-items: center; gap: 2px; font-family: inherit; transition: all 0.15s;
+  }
+  .sam-week-day:hover:not(.active) { background: #f5f5f5; border-color: #bbb; }
+  .sam-week-day.active  { background: #222; color: #fff; border-color: #222; }
+  .sam-week-day.today:not(.active) { border-color: #2c6fad; color: #2c6fad; }
+  .sam-week-day-name { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.03em; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; text-align: center; }
+  .sam-week-day-num  { font-size: 0.95rem; font-weight: 600; }
+  /* Busyness dots */
+  .sam-week-day-dots { display: flex; gap: 2px; justify-content: center; margin-top: 3px; min-height: 7px; }
+  .sam-week-day-dot  { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .sam-week-day.active .sam-week-day-dot { opacity: 0.75; }
+
+  /* --- Date nav --- */
+  .sam-date-nav { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.9rem; flex-wrap: wrap; }
+  .sam-date-nav button {
+    background: #222; color: #fff; border: none;
+    padding: 0.4rem 1rem; cursor: pointer; font-size: 0.88rem; border-radius: 4px;
+    transition: background 0.15s;
+  }
+  .sam-date-nav button:hover { background: #444; }
+  .sam-date-label {
+    font-size: 1.1rem; font-weight: 600; cursor: pointer;
+    border: 1px solid #ccc; border-radius: 4px; padding: 3px 8px;
+    background: #f8f8f8; transition: all 0.15s; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .sam-date-label:hover { color: #2c6fad; border-color: #2c6fad; background: #eef4fb; }
+  .sam-date-label::after { content: '\25BC'; font-size: 0.55em; opacity: 0.5; }
+  .sam-today-btn  { background: #888 !important; font-size: 0.8rem !important; }
+  .sam-print-btn  { background: #f0f0f0 !important; color: #444 !important; border: 1px solid #ccc !important; font-size: 0.8rem !important; }
+  .sam-print-btn:hover { background: #e0e0e0 !important; }
+  .sam-day-summary {
+    font-size: 0.75rem; color: #777; background: #f0f0f0;
+    padding: 3px 11px; border-radius: 12px; font-weight: 500; white-space: nowrap;
+  }
+
+  /* --- Venue filter --- */
+  .sam-venue-filter { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.6rem; align-items: center; }
+  .sam-venue-filter-label { font-size: 0.73rem; color: #999; margin-right: 0.2rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sam-venue-btn {
+    background: #f0f0f0; color: #444; border: 1px solid #ccc;
+    padding: 0.28rem 0.85rem; cursor: pointer; font-size: 0.8rem; border-radius: 20px;
+    font-family: inherit; transition: all 0.15s;
+  }
+  .sam-venue-btn:hover { background: #e0e0e0; }
+  .sam-venue-btn.active { background: #222; color: #fff; border-color: #222; }
+
+  /* --- Status legend --- */
+  .sam-status-legend {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.1rem; margin-bottom: 1.1rem;
+    padding: 0.55rem 0.85rem; background: #f8f8f8; border-radius: 6px;
+    border: 1px solid #eee; align-items: center;
+  }
+  .sam-legend-label { font-size: 0.68rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.06em; margin-right: 0.15rem; }
+  .sam-legend-item  { display: flex; align-items: center; gap: 7px; font-size: 0.78rem; color: #444; }
+  .sam-legend-dot   { width: 22px; height: 14px; border-radius: 4px; flex-shrink: 0; }
+
+  /* --- Timeline --- */
+  .sam-timeline { overflow-x: auto; min-width: 0; }
+  .sam-timeline-header { display: flex; margin-left: 190px; margin-bottom: 4px; }
+  .sam-timeline-hour {
+    flex: 1; font-size: 0.67rem; color: #aaa; font-weight: 500;
+    text-align: left; padding: 0 0 3px 3px;
+  }
+  .sam-timeline-rows { border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; }
+
+  /* Venue section header */
+  .sam-timeline-venue-hdr { display: flex; background: #f0f0f0; border-bottom: 2px solid #ddd; }
+  .sam-timeline-venue-lbl {
+    width: 190px; min-width: 190px; font-size: 0.67rem; font-weight: 700;
+    color: #777; text-transform: uppercase; letter-spacing: 0.07em;
+    padding: 7px 12px; border-right: 1px solid #e0e0e0;
+    display: flex; flex-direction: column; gap: 5px; justify-content: center;
+  }
+  /* Venue utilization bar */
+  .sam-venue-util-wrap  { display: flex; align-items: center; gap: 5px; }
+  .sam-venue-util-track { flex: 1; height: 5px; background: rgba(0,0,0,0.12); border-radius: 3px; overflow: hidden; }
+  .sam-venue-util-fill  { height: 100%; border-radius: 3px; }
+  .sam-venue-util-pct   { font-size: 0.58rem; color: #aaa; white-space: nowrap; letter-spacing: 0; text-transform: none; font-weight: 500; }
+  .sam-timeline-venue-trk { flex: 1; min-height: 16px; position: relative; }
+
+  /* Space rows */
+  .sam-timeline-row {
+    display: flex; align-items: stretch; min-height: 56px;
+    border-bottom: 1px solid #e8e8e8;
+  }
+  .sam-timeline-row--tall { min-height: 74px; }
+  .sam-timeline-row:last-child { border-bottom: none; }
+  .sam-timeline-row:nth-child(even) { background: #fafafa; }
+  .sam-timeline-label {
+    width: 190px; min-width: 190px; font-size: 0.77rem;
+    padding: 0 12px; display: flex; align-items: center; font-weight: 500;
+    color: #333; border-right: 1px solid #e8e8e8; background: inherit;
+  }
+
+  .sam-timeline-track { flex: 1; position: relative; min-height: inherit; }
+  .sam-timeline-gridline {
+    position: absolute; top: 0; bottom: 0; width: 1px;
+    background: #eee; pointer-events: none;
+  }
+
+  /* "Now" indicator */
+  .sam-timeline-nowline {
+    position: absolute; top: 0; bottom: 0; width: 2px;
+    background: rgba(220, 50, 50, 0.75); z-index: 5; pointer-events: none;
+  }
+  .sam-timeline-nowline::before {
+    content: ''; position: absolute; top: -4px; left: -4px;
+    width: 10px; height: 10px; border-radius: 50%; background: #dc3232;
+  }
+
+  /* Booking blocks */
+  .sam-timeline-block {
+    position: absolute; top: 7px; bottom: 7px;
+    border-radius: 4px; overflow: hidden; cursor: pointer; min-width: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transition: filter 0.15s, box-shadow 0.15s;
+  }
+  .sam-timeline-block:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.28);
+    z-index: 10;
+  }
+  .sam-timeline-block-inner   { padding: 4px 7px; line-height: 1.3; }
+  .sam-timeline-block-inner > div { margin: 0; padding: 0; }
+  .sam-timeline-block-title   { font-size: 0.8em; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+  .sam-timeline-block-comment { font-size: 0.72em; color: rgba(255,255,255,0.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-style: italic; }
+  .sam-timeline-block-time    { font-size: 0.72em; color: rgba(255,255,255,0.85); white-space: nowrap; }
+
+  /* --- Skeleton loader --- */
+  @keyframes sam-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .sam-skel {
+    background: linear-gradient(90deg, #ebebeb 25%, #f4f4f4 50%, #ebebeb 75%);
+    background-size: 200% 100%;
+    animation: sam-shimmer 1.4s ease-in-out infinite;
+    border-radius: 3px;
+  }
+
+  /* --- Fade transition --- */
+  #sam-bookings, #sam-functions, #sam-cards { transition: opacity 0.15s ease; }
+
+  /* --- Click popup --- */
+  #sam-popup {
+    position: fixed; z-index: 9999;
+    background: #fff; border: 1px solid #ddd; border-radius: 8px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+    padding: 14px 16px; min-width: 230px; max-width: 315px;
+    pointer-events: none; overflow: hidden;
+  }
+  #sam-popup h4       { margin: 0 0 5px; font-size: 0.88rem; color: #111; line-height: 1.3; }
+  .sam-popup-time     { font-size: 0.78rem; color: #444; font-weight: 600; margin-bottom: 7px; }
+  .sam-popup-status   { display: inline-block; margin-bottom: 9px; padding: 2px 9px; border-radius: 10px; font-size: 0.69rem; font-weight: 600; color: #fff; }
+  .sam-popup-comment  { font-size: 0.75rem; color: #666; font-style: italic; margin: 0 0 9px; padding: 6px 8px; background: #f6f6f6; border-radius: 4px; border-left: 3px solid #ddd; line-height: 1.4; }
+  .sam-popup-row      { font-size: 0.78rem; color: #444; margin-bottom: 4px; }
+  .sam-popup-row span { font-weight: 600; color: #111; }
+  .sam-popup-venue    { font-size: 0.69rem; color: #bbb; margin-top: 8px; }
+
+  /* --- Hover tooltip --- */
+  #sam-hover-tip {
+    position: fixed; z-index: 9998;
+    background: rgba(28,28,28,0.93); color: #fff;
+    border-radius: 6px; padding: 8px 12px; max-width: 220px;
+    pointer-events: none; font-size: 0.76rem; line-height: 1.4;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+  }
+
+  /* --- Month calendar popup --- */
+  #sam-cal-popup {
+    position: fixed; z-index: 9997;
+    background: #fff; border: 1px solid #ddd; border-radius: 8px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.13);
+    padding: 12px; width: 248px;
+    user-select: none;
+  }
+  .sam-cal-hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .sam-cal-hdr button {
+    background: none; border: none; cursor: pointer; font-size: 1rem;
+    padding: 3px 8px; border-radius: 4px; color: #333; font-family: inherit;
+    transition: background 0.12s;
+  }
+  .sam-cal-hdr button:hover { background: #f0f0f0; }
+  .sam-cal-hdr span { font-weight: 600; font-size: 0.88rem; }
+  .sam-cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+  }
+  .sam-cal-dh {
+    text-align: center; font-size: 0.63rem; color: #bbb;
+    text-transform: uppercase; padding: 4px 0; font-weight: 600;
+  }
+  .sam-cal-day {
+    text-align: center; font-size: 0.8rem; padding: 5px 2px;
+    border-radius: 4px; cursor: pointer; transition: background 0.1s; line-height: 1.2;
+  }
+  .sam-cal-day:hover:not(.selected):not(.empty) { background: #f0f0f0; }
+  .sam-cal-day.today    { color: #2c6fad; font-weight: 700; }
+  .sam-cal-day.selected { background: #222; color: #fff !important; font-weight: 600; }
+  .sam-cal-day.empty    { cursor: default; }
+
+  /* --- Functions table --- */
+  .sam-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  .sam-table th { background: #222; color: #fff; padding: 0.6rem 0.75rem; text-align: left; font-weight: 600; white-space: nowrap; }
+  .sam-table td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
+  .sam-table tr:nth-child(even) td { background: #f7f7f7; }
+
+  /* --- Month view tab --- */
+  .sam-month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .sam-month-nav-btn { background: #222; color: #fff; border: none; padding: 0.4rem 1rem; cursor: pointer; font-size: 0.88rem; border-radius: 4px; font-family: inherit; transition: background 0.15s; }
+  .sam-month-nav-btn:hover { background: #444; }
+  .sam-month-nav-title { font-size: 1.1rem; font-weight: 600; }
+  .sam-month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .sam-month-dh { text-align: center; font-size: 0.68rem; color: #aaa; text-transform: uppercase; padding: 4px; font-weight: 600; }
+  .sam-month-day { border: 1px solid #e8e8e8; border-radius: 6px; padding: 6px 7px; min-height: 72px; cursor: pointer; transition: all 0.12s; background: #fff; }
+  .sam-month-day:hover:not(.empty) { background: #f5f5f5; border-color: #bbb; }
+  .sam-month-day.empty { background: transparent; border-color: transparent; cursor: default; min-height: 0; }
+  .sam-month-day.today { border-color: #2c6fad; }
+  .sam-month-day.active { background: #222; border-color: #222; }
+  .sam-month-day-num { font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; color: #333; }
+  .sam-month-day.today:not(.active) .sam-month-day-num { color: #2c6fad; }
+  .sam-month-day.active .sam-month-day-num { color: #fff; }
+  .sam-month-day-stats { font-size: 0.64rem; color: #555; line-height: 1.55; }
+  .sam-month-day.active .sam-month-day-stats { color: rgba(255,255,255,0.8); }
+  .sam-month-busy-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 3px; vertical-align: middle; }
+
+  /* --- Events (cards) tab --- */
+  .sam-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1rem; }
+  .sam-card { border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; flex-direction: column; }
+  .sam-card-hdr { padding: 11px 14px 10px; background: #222; color: #fff; }
+  .sam-card-org { font-size: 0.9rem; font-weight: 700; line-height: 1.3; }
+  .sam-card-body { padding: 4px 14px 2px; flex: 1; }
+  .sam-card-booking { display: flex; align-items: flex-start; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #f0f0f0; gap: 8px; }
+  .sam-card-booking:last-of-type { border-bottom: none; }
+  .sam-card-space-name { font-size: 0.8rem; font-weight: 600; color: #222; display: flex; align-items: center; gap: 5px; }
+  .sam-card-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .sam-card-event-desc { font-size: 0.71rem; color: #888; font-style: italic; margin-top: 2px; }
+  .sam-card-time { font-size: 0.76rem; color: #555; white-space: nowrap; flex-shrink: 0; padding-top: 2px; }
+  .sam-card-footer { padding: 8px 14px; background: #f8f8f8; border-top: 1px solid #eee; font-size: 0.78rem; color: #555; display: flex; flex-wrap: wrap; gap: 3px 16px; align-items: center; }
+  .sam-card-contact-name { font-weight: 600; color: #333; }
+
+  /* --- States --- */
+  .sam-empty { text-align: center; padding: 3rem 1rem; }
+  .sam-empty svg { display: block; margin: 0 auto 0.75rem; opacity: 0.35; }
+  .sam-empty p { font-size: 0.9rem; margin: 0; color: #bbb; }
+  .sam-error { color: #c00; }
+
+  /* --- Print --- */
+  @media print {
+    .sam-tabs, .sam-venue-filter, .sam-status-legend,
+    #sam-week-strip-bookings, #sam-week-strip-functions, #sam-week-strip-cards,
+    #sam-popup, #sam-hover-tip, #sam-cal-popup, .sam-month-nav { display: none !important; }
+    .sam-date-nav button { display: none !important; }
+    .sam-date-label { border: none; background: none; cursor: default; }
+    .sam-date-label::after { display: none; }
+    .sam-timeline { overflow: visible !important; }
+    .sam-timeline-block { box-shadow: none !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sam-cards-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    @page { margin: 1cm; size: landscape; }
+  }
+</style>
+
+<!-- Shared overlays -->
+<div id="sam-popup"    style="display:none"></div>
+<div id="sam-hover-tip" style="display:none"></div>
+<div id="sam-cal-popup" style="display:none" onclick="event.stopPropagation()"></div>
+
+<div class="sam-widget">
+
+  <div class="sam-tabs">
+    <button class="sam-tab active" onclick="samShowTab('bookings')">Space Bookings</button>
+    <button class="sam-tab"        onclick="samShowTab('functions')">Functions</button>
+    <button class="sam-tab"        onclick="samShowTab('month')">Month View</button>
+    <button class="sam-tab"        onclick="samShowTab('cards')">Events</button>
+  </div>
+
+  <!-- Space Bookings tab -->
+  <div id="sam-tab-bookings">
+    <div id="sam-week-strip-bookings"></div>
+    <div class="sam-date-nav">
+      <button onclick="samChangeDay('bookings',-1)">&#8592; Prev</button>
+      <span class="sam-date-label" id="sam-label-bookings" onclick="samToggleCal('bookings',event)"></span>
+      <button onclick="samChangeDay('bookings',1)">Next &#8594;</button>
+      <button class="sam-today-btn" onclick="samGoToday('bookings')">Today</button>
+      <button class="sam-print-btn"  onclick="window.print()">Print</button>
+      <span id="sam-summary-bookings" class="sam-day-summary" style="display:none"></span>
+    </div>
+    <div id="sam-venue-filter" class="sam-venue-filter"></div>
+    <div id="sam-status-legend" class="sam-status-legend"></div>
+    <div id="sam-bookings"></div>
+  </div>
+
+  <!-- Month View tab -->
+  <div id="sam-tab-month" style="display:none">
+    <div id="sam-month-view"></div>
+  </div>
+
+  <!-- Events (Cards) tab -->
+  <div id="sam-tab-cards" style="display:none">
+    <div id="sam-week-strip-cards"></div>
+    <div class="sam-date-nav">
+      <button onclick="samChangeDay('cards',-1)">&#8592; Prev</button>
+      <span class="sam-date-label" id="sam-label-cards" onclick="samToggleCal('cards',event)"></span>
+      <button onclick="samChangeDay('cards',1)">Next &#8594;</button>
+      <button class="sam-today-btn" onclick="samGoToday('cards')">Today</button>
+      <button class="sam-print-btn"  onclick="window.print()">Print</button>
+      <span id="sam-summary-cards" class="sam-day-summary" style="display:none"></span>
+    </div>
+    <div id="sam-cards"></div>
+  </div>
+
+  <!-- Functions tab -->
+  <div id="sam-tab-functions" style="display:none">
+    <div id="sam-week-strip-functions"></div>
+    <div class="sam-date-nav">
+      <button onclick="samChangeDay('functions',-1)">&#8592; Prev</button>
+      <span class="sam-date-label" id="sam-label-functions" onclick="samToggleCal('functions',event)"></span>
+      <button onclick="samChangeDay('functions',1)">Next &#8594;</button>
+      <button class="sam-today-btn" onclick="samGoToday('functions')">Today</button>
+      <span id="sam-summary-functions" class="sam-day-summary" style="display:none"></span>
+    </div>
+    <div id="sam-functions"></div>
+  </div>
+
+</div>
+
+<script>
+// =============================================================
+// CONFIG
+// =============================================================
+var SAM_BOOKINGS_URL  = 'https://script.google.com/macros/s/AKfycbyyJ2TEB86Vza1gu8WZvdxSq-SYN7aTP0zp_ZTAzsMhmpUGpnyGvsZq42OLE84SCQxk/exec';
+var SAM_FUNCTIONS_URL = ''; // Paste Functions Apps Script URL here when ready
+var SAM_FUNCTIONS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQNRTnGvZzVlyKCzKfbKQ5eXmEX0WhoZ_u05vNzRCONxKjRt0ZYfkgoKT0oP9LLkKu8Vwd528T6Zt0G/pub?gid=58099842&single=true&output=csv';
+
+var TIMELINE_START_HR = 7;
+var TIMELINE_END_HR   = 22;
+
+var SAM_VENUE_LIST = [
+  'TransAlta Performing Arts Studios',
+  'Calgary Arts Academy',
+  'Sam Centre',
+  'Doherty Hall',
+  'Outdoor Spaces'
+];
+
+var SAM_STATUS_COLORS = [
+  // Blue — Tentative / Holds
+  { test: /tentative/i,  grad: 'linear-gradient(135deg,#2c6fad,#1e5a94)', solid: '#2c6fad', label: 'Tentative / Hold' },
+  { test: /hold/i,       grad: 'linear-gradient(135deg,#2c6fad,#1e5a94)', solid: '#2c6fad', label: 'Tentative / Hold' },
+  // Green — Confirmed
+  { test: /reserved/i,   grad: 'linear-gradient(135deg,#2d9e6b,#1e7a50)', solid: '#2d9e6b', label: 'Confirmed'        },
+  { test: /confirmed/i,  grad: 'linear-gradient(135deg,#2d9e6b,#1e7a50)', solid: '#2d9e6b', label: 'Confirmed'        },
+  { test: /published/i,  grad: 'linear-gradient(135deg,#2d9e6b,#1e7a50)', solid: '#2d9e6b', label: 'Confirmed'        },
+  // Grey — Complete
+  { test: /invoiced/i,   grad: 'linear-gradient(135deg,#888,#666)',        solid: '#888888', label: 'Complete'         },
+  { test: /completed/i,  grad: 'linear-gradient(135deg,#888,#666)',        solid: '#888888', label: 'Complete'         },
+];
+var SAM_STATUS_DEFAULT = { grad: 'linear-gradient(135deg,#c9a800,#a07d00)', solid: '#c9a800', label: 'Other' };
+
+function samStatusColor(status) {
+  if (!status) return SAM_STATUS_DEFAULT;
+  for (var i = 0; i < SAM_STATUS_COLORS.length; i++) {
+    if (SAM_STATUS_COLORS[i].test.test(status)) return SAM_STATUS_COLORS[i];
+  }
+  return SAM_STATUS_DEFAULT;
+}
+
+// =============================================================
+// STATE
+// =============================================================
+var samAllBookings   = [];
+var samAllFunctions  = [];
+var samBookingsDate  = samToday();
+var samFunctionsDate = samToday();
+var samCardsDate     = samToday();
+var samBookingsVenue = '';
+var samMonthYear     = new Date().getFullYear();
+var samMonthMonth    = new Date().getMonth();
+
+function samToday() { var d = new Date(); d.setHours(0,0,0,0); return d; }
+
+// =============================================================
+// UTILITIES
+// =============================================================
+function samEsc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+var SAM_MONTHS     = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var SAM_DAYS       = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var SAM_DAYS_SHORT = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+function samFmtDate(d) {
+  return SAM_DAYS[d.getDay()] + ', ' + SAM_MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+}
+function samSameDay(a, b) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+// Busyness stats for a date (bookings count + planned attendance)
+function samGetDayStats(date) {
+  var count = 0, attendance = 0;
+  for (var i = 0; i < samAllBookings.length; i++) {
+    var b = samAllBookings[i];
+    var d = samParseBookingDate(b['Date']);
+    if (!d || !samSameDay(d, date)) continue;
+    if (/cancelled/i.test(b['Status - Event'] || '')) continue;
+    count++;
+    var att = parseInt(b['Planned Attendance'] || '0', 10);
+    if (!isNaN(att)) attendance += att;
+  }
+  return { count: count, attendance: attendance };
+}
+// Dot colour + count for busyness indicator
+function samBusynessStyle(count, attendance) {
+  if (count === 0) return null;
+  var score = count + Math.floor(attendance / 50);
+  return {
+    color: score <= 3 ? '#2d9e6b' : score <= 7 ? '#e08c00' : '#c0392b',
+    dots:  Math.min(5, count)
+  };
+}
+
+// =============================================================
+// TAB
+// =============================================================
+function samShowTab(tab) {
+  ['bookings','functions','month','cards'].forEach(function(t) {
+    document.getElementById('sam-tab-' + t).style.display = t === tab ? '' : 'none';
+  });
+  var tabs = document.querySelectorAll('.sam-tab');
+  tabs[0].classList.toggle('active', tab === 'bookings');
+  tabs[1].classList.toggle('active', tab === 'functions');
+  tabs[2].classList.toggle('active', tab === 'month');
+  tabs[3].classList.toggle('active', tab === 'cards');
+  samHidePopup(); samHideHover(); samCloseCal();
+  if (tab === 'month') samRenderMonthView();
+}
+
+// =============================================================
+// DATE NAVIGATION
+// =============================================================
+function samCurrentDate(which) {
+  if (which === 'bookings')  return samBookingsDate;
+  if (which === 'functions') return samFunctionsDate;
+  return samCardsDate;
+}
+function samSetCurrentDate(which, d) {
+  if (which === 'bookings')       samBookingsDate  = d;
+  else if (which === 'functions') samFunctionsDate = d;
+  else                            samCardsDate     = d;
+}
+function samRenderTab(which) {
+  if (which === 'bookings')       samRenderBookings();
+  else if (which === 'functions') samRenderFunctions();
+  else                            samRenderCards();
+}
+function samChangeDay(which, delta) {
+  samHidePopup(); samHideHover(); samCloseCal();
+  var d = samCurrentDate(which);
+  d.setDate(d.getDate() + delta);
+  samRenderTab(which);
+}
+function samGoToday(which) {
+  samHidePopup(); samHideHover(); samCloseCal();
+  samSetCurrentDate(which, samToday());
+  samRenderTab(which);
+}
+function samGoDate(which, y, m, d) {
+  samHidePopup(); samHideHover(); samCloseCal();
+  samSetCurrentDate(which, new Date(y, m, d));
+  samRenderTab(which);
+}
+
+// =============================================================
+// WEEK STRIP  (with busyness dots)
+// =============================================================
+function samRenderWeekStrip(which) {
+  var container = document.getElementById('sam-week-strip-' + which);
+  if (!container) return;
+  var cur = samCurrentDate(which);
+  var sw = new Date(cur);
+  sw.setDate(cur.getDate() - cur.getDay());
+  var today = samToday();
+  var html = '<div class="sam-week-strip">';
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(sw);
+    d.setDate(sw.getDate() + i);
+    var cls   = 'sam-week-day' + (samSameDay(d, cur) ? ' active' : '') + (samSameDay(d, today) ? ' today' : '');
+    var stats = samGetDayStats(d);
+    var busy  = samBusynessStyle(stats.count, stats.attendance);
+    var dotsHtml = '<div class="sam-week-day-dots">';
+    if (busy) {
+      for (var j = 0; j < busy.dots; j++) {
+        dotsHtml += '<div class="sam-week-day-dot" style="background:' + busy.color + '"></div>';
+      }
+    }
+    dotsHtml += '</div>';
+    html += '<button class="' + cls + '" onclick="samGoDate(\'' + which + '\',' + d.getFullYear() + ',' + d.getMonth() + ',' + d.getDate() + ')">' +
+            '<span class="sam-week-day-name">' + SAM_DAYS[d.getDay()] + '</span>' +
+            '<span class="sam-week-day-num">'  + d.getDate() + '</span>' +
+            dotsHtml +
+            '</button>';
+  }
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+// =============================================================
+// MONTH MINI-CALENDAR
+// =============================================================
+var samCalYear  = 0;
+var samCalMonth = 0;
+var samCalWhich = 'bookings';
+var samCalOpen  = false;
+
+function samToggleCal(which, evt) {
+  evt.stopPropagation();
+  if (samCalOpen && samCalWhich === which) { samCloseCal(); return; }
+  samCalWhich = which;
+  var cur = samCurrentDate(which);
+  samCalYear  = cur.getFullYear();
+  samCalMonth = cur.getMonth();
+  var el  = document.getElementById('sam-cal-popup');
+  var lbl = document.getElementById('sam-label-' + which);
+  var rect = lbl.getBoundingClientRect();
+  samRenderCalGrid();
+  el.style.display = 'block';
+  el.style.top  = (rect.bottom + 6) + 'px';
+  el.style.left = Math.min(rect.left, window.innerWidth - 260) + 'px';
+  samCalOpen = true;
+}
+function samCloseCal() {
+  document.getElementById('sam-cal-popup').style.display = 'none';
+  samCalOpen = false;
+}
+function samNavCal(delta, evt) {
+  evt.stopPropagation();
+  samCalMonth += delta;
+  if (samCalMonth > 11) { samCalMonth = 0; samCalYear++; }
+  if (samCalMonth < 0)  { samCalMonth = 11; samCalYear--; }
+  samRenderCalGrid();
+}
+function samRenderCalGrid() {
+  var cur      = samCurrentDate(samCalWhich);
+  var today    = samToday();
+  var firstDay = new Date(samCalYear, samCalMonth, 1).getDay();
+  var daysInMo = new Date(samCalYear, samCalMonth + 1, 0).getDate();
+  var html = '<div class="sam-cal-hdr">' +
+             '<button onclick="samNavCal(-1,event)">&#8592;</button>' +
+             '<span>' + SAM_MONTHS[samCalMonth] + ' ' + samCalYear + '</span>' +
+             '<button onclick="samNavCal(1,event)">&#8594;</button>' +
+             '</div><div class="sam-cal-grid">';
+  SAM_DAYS_SHORT.forEach(function(d) { html += '<div class="sam-cal-dh">' + d + '</div>'; });
+  for (var e = 0; e < firstDay; e++) html += '<div class="sam-cal-day empty"></div>';
+  for (var d = 1; d <= daysInMo; d++) {
+    var date = new Date(samCalYear, samCalMonth, d);
+    var cls  = 'sam-cal-day' + (samSameDay(date, today) ? ' today' : '') + (samSameDay(date, cur) ? ' selected' : '');
+    html += '<div class="' + cls + '" onclick="samPickDate(' + samCalYear + ',' + samCalMonth + ',' + d + ')">' + d + '</div>';
+  }
+  html += '</div>';
+  document.getElementById('sam-cal-popup').innerHTML = html;
+}
+function samPickDate(y, m, d) { samGoDate(samCalWhich, y, m, d); }
+
+// =============================================================
+// TIME PARSING
+// =============================================================
+function samParseTime12(str) {
+  if (!str) return null;
+  var mFull = str.match(/\d{4} (\d{2}):(\d{2}):\d{2}/);
+  if (mFull) return parseInt(mFull[1], 10) * 60 + parseInt(mFull[2], 10);
+  var m12 = str.match(/(\d+):(\d+)\s*(a\.m\.|p\.m\.)/i);
+  if (m12) {
+    var h = parseInt(m12[1], 10), min = parseInt(m12[2], 10), pm = /p\.m\./i.test(m12[3]);
+    if (pm && h !== 12) h += 12;
+    if (!pm && h === 12) h = 0;
+    return h * 60 + min;
+  }
+  return null;
+}
+function samParseTimeISO(str) {
+  if (!str) return null;
+  var m = str.match(/T(\d{2}):(\d{2})/);
+  return m ? parseInt(m[1], 10) * 60 + parseInt(m[2], 10) : null;
+}
+function samMinsToStr(mins) {
+  if (mins === null || mins === undefined) return '';
+  var h = Math.floor(mins / 60), m = mins % 60;
+  var suf = h >= 12 ? 'p.m.' : 'a.m.';
+  h = h % 12 || 12;
+  return h + ':' + (m < 10 ? '0' : '') + m + ' ' + suf;
+}
+var SAM_MONTH_MAP = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+function samParseBookingDate(str) {
+  if (!str) return null;
+  var m = str.match(/\w{3} (\w{3}) (\d{2}) (\d{4})/);
+  if (m && SAM_MONTH_MAP[m[1]] !== undefined) return new Date(+m[3], SAM_MONTH_MAP[m[1]], +m[2]);
+  return null;
+}
+function samParseISODate(str) {
+  if (!str) return null;
+  var m = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? new Date(+m[1], +m[2]-1, +m[3]) : null;
+}
+
+// =============================================================
+// HOVER TOOLTIP
+// =============================================================
+var samHoverTipEl = document.getElementById('sam-hover-tip');
+
+function samShowHover(evt, idx) {
+  var b = samCurrentBookings[idx];
+  if (!b) return;
+  var start = samParseTime12(b['Start Time']);
+  var end   = samParseTime12(b['End Time']);
+  var col   = samStatusColor(b['Status - Event']);
+  samHoverTipEl.innerHTML =
+    '<div style="font-weight:700;margin-bottom:3px;font-size:0.78rem">' + samEsc(b['Event Description'] || b['Account Name'] || '\u2014') + '</div>' +
+    '<div style="opacity:0.75;font-size:0.7rem;margin-bottom:5px">' + samMinsToStr(start) + ' \u2013 ' + samMinsToStr(end) + '</div>' +
+    (b['Status - Event'] ? '<div style="display:inline-block;padding:1px 8px;border-radius:8px;font-size:0.65rem;font-weight:600;background:' + col.solid + ';color:#fff">' + samEsc(b['Status - Event']) + '</div>' : '');
+  samHoverTipEl.style.display = 'block';
+  samPositionHover(evt);
+}
+function samMoveHover(evt)  { samPositionHover(evt); }
+function samHideHover()     { samHoverTipEl.style.display = 'none'; }
+function samPositionHover(evt) {
+  var x = evt.clientX + 14, y = evt.clientY - 62;
+  if (x + 230 > window.innerWidth)  x = evt.clientX - 240;
+  if (y < 6) y = evt.clientY + 14;
+  samHoverTipEl.style.left = x + 'px';
+  samHoverTipEl.style.top  = y + 'px';
+}
+
+// =============================================================
+// CLICK POPUP
+// =============================================================
+var samPopupEl         = document.getElementById('sam-popup');
+var samCurrentBookings = [];
+
+function samShowPopup(evt, idx) {
+  evt.stopPropagation();
+  samHideHover();
+  var b = samCurrentBookings[idx];
+  if (!b) return;
+  var start   = samParseTime12(b['Start Time']);
+  var end     = samParseTime12(b['End Time']);
+  var timeStr = samMinsToStr(start) + ' \u2013 ' + samMinsToStr(end);
+  var status  = b['Status - Event'] || '';
+  var comment = (b['System Comment'] || '').trim();
+  var col     = samStatusColor(status);
+  samPopupEl.innerHTML =
+    '<div style="height:4px;background:' + col.grad + ';border-radius:4px 4px 0 0;margin:-14px -16px 12px"></div>' +
+    '<h4>' + samEsc(b['Event Description'] || '\u2014') + '</h4>' +
+    '<div class="sam-popup-time">' + timeStr + '</div>' +
+    (status  ? '<div><span class="sam-popup-status" style="background:' + col.solid + '">' + samEsc(status) + '</span></div>' : '') +
+    (comment ? '<div class="sam-popup-comment">' + samEsc(comment) + '</div>' : '') +
+    '<div class="sam-popup-row"><span>Account:</span> ' + samEsc(b['Account Name'] || '\u2014') + '</div>' +
+    '<div class="sam-popup-row"><span>Contact:</span> ' + samEsc(b['Contact - Full Name'] || '\u2014') + '</div>' +
+    '<div class="sam-popup-row"><span>Phone:</span> '   + samEsc(b['Contact - Phone'] || '\u2014') + '</div>' +
+    '<div class="sam-popup-venue">' + samEsc(b['Venue'] || '') + '</div>';
+  samPopupEl.style.display = 'block';
+  var x = evt.clientX + 14, y = evt.clientY + 14;
+  if (x + 325 > window.innerWidth)  x = evt.clientX - 335;
+  if (y + 260 > window.innerHeight) y = evt.clientY - 270;
+  samPopupEl.style.left = x + 'px';
+  samPopupEl.style.top  = y + 'px';
+}
+function samHidePopup() { samPopupEl.style.display = 'none'; }
+
+document.addEventListener('click', function() {
+  samHidePopup();
+  samCloseCal();
+});
+
+// =============================================================
+// SKELETON LOADER
+// =============================================================
+var SAM_SKEL_PATTERNS = [
+  [{l:8,  w:15}, {l:38, w:22}],
+  [{l:14, w:30}],
+  [{l:6,  w:12}, {l:42, w:14}, {l:70, w:18}],
+  [{l:22, w:38}],
+  [{l:10, w:16}, {l:56, w:20}]
+];
+
+function samRenderSkeleton() {
+  var numHours = TIMELINE_END_HR - TIMELINE_START_HR;
+  var html = '<div class="sam-timeline"><div class="sam-timeline-header">';
+  for (var h = TIMELINE_START_HR; h <= TIMELINE_END_HR; h++) {
+    var lbl = h === 12 ? '12pm' : h < 12 ? h + 'am' : (h-12) + 'pm';
+    html += '<div class="sam-timeline-hour">' + lbl + '</div>';
+  }
+  html += '</div><div class="sam-timeline-rows">';
+  // Venue header skeleton
+  html += '<div class="sam-timeline-venue-hdr">' +
+          '<div class="sam-timeline-venue-lbl"><div class="sam-skel" style="width:75%;height:9px"></div></div>' +
+          '<div class="sam-timeline-venue-trk"></div></div>';
+  SAM_SKEL_PATTERNS.forEach(function(row) {
+    html += '<div class="sam-timeline-row">' +
+            '<div class="sam-timeline-label"><div class="sam-skel" style="width:68%;height:11px"></div></div>' +
+            '<div class="sam-timeline-track">';
+    row.forEach(function(b) {
+      html += '<div class="sam-skel" style="position:absolute;top:12px;bottom:12px;left:' + b.l + '%;width:' + b.w + '%;border-radius:4px"></div>';
+    });
+    html += '</div></div>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+// =============================================================
+// FADE TRANSITION
+// =============================================================
+function samFadeRender(elId, renderFn) {
+  var el = document.getElementById(elId);
+  el.style.opacity = '0';
+  setTimeout(function() {
+    renderFn(el);
+    el.style.opacity = '1';
+  }, 150);
+}
+
+// =============================================================
+// TIMELINE
+// =============================================================
+var SAM_EMPTY_SVG =
+  '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5">' +
+  '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>' +
+  '<line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>';
+
+function samRenderTimeline(bookings) {
+  samCurrentBookings = bookings;
+  var totalMins = (TIMELINE_END_HR - TIMELINE_START_HR) * 60;
+  var numHours  = TIMELINE_END_HR - TIMELINE_START_HR;
+
+  var html = '<div class="sam-timeline"><div class="sam-timeline-header">';
+  for (var h = TIMELINE_START_HR; h <= TIMELINE_END_HR; h++) {
+    var lbl = h === 12 ? '12pm' : h < 12 ? h + 'am' : (h-12) + 'pm';
+    html += '<div class="sam-timeline-hour">' + lbl + '</div>';
+  }
+  html += '</div><div class="sam-timeline-rows">';
+
+  var gridLines = '';
+  for (var g = 1; g < numHours; g++) {
+    gridLines += '<div class="sam-timeline-gridline" style="left:' + (g / numHours * 100).toFixed(3) + '%"></div>';
+  }
+
+  var nowLine = '';
+  var nowDate = new Date();
+  if (samSameDay(samBookingsDate, nowDate)) {
+    var nowMins = nowDate.getHours() * 60 + nowDate.getMinutes();
+    if (nowMins >= TIMELINE_START_HR * 60 && nowMins <= TIMELINE_END_HR * 60) {
+      nowLine = '<div class="sam-timeline-nowline" style="left:' + ((nowMins - TIMELINE_START_HR * 60) / totalMins * 100).toFixed(2) + '%"></div>';
+    }
+  }
+
+  var venueMap = {};
+  bookings.forEach(function(b) {
+    var v = (b['Venue'] || 'Other').trim();
+    var s = (b['Space'] || 'Unknown').trim();
+    if (!venueMap[v]) venueMap[v] = {};
+    if (!venueMap[v][s]) venueMap[v][s] = [];
+    venueMap[v][s].push(b);
+  });
+
+  var orderedVenues = SAM_VENUE_LIST.filter(function(v) { return venueMap[v]; });
+  Object.keys(venueMap).forEach(function(v) {
+    if (orderedVenues.indexOf(v) === -1) orderedVenues.push(v);
+  });
+
+  orderedVenues.forEach(function(venue) {
+    var spaceMap = venueMap[venue];
+    var spaces   = Object.keys(spaceMap).sort();
+
+    // Venue utilization: total booked mins / total available mins across all spaces
+    var totalAvailMins  = spaces.length * totalMins;
+    var totalBookedMins = 0;
+    spaces.forEach(function(space) {
+      spaceMap[space].forEach(function(b) {
+        var bs = samParseTime12(b['Start Time']);
+        var be = samParseTime12(b['End Time']);
+        if (bs !== null && be !== null && be > bs) {
+          var cs = Math.max(bs, TIMELINE_START_HR * 60);
+          var ce = Math.min(be, TIMELINE_END_HR * 60);
+          if (ce > cs) totalBookedMins += (ce - cs);
+        }
+      });
+    });
+    var utilPct   = totalAvailMins > 0 ? Math.round(totalBookedMins / totalAvailMins * 100) : 0;
+    var utilColor = utilPct < 30 ? '#2d9e6b' : utilPct < 65 ? '#e08c00' : '#c0392b';
+
+    html += '<div class="sam-timeline-venue-hdr">' +
+            '<div class="sam-timeline-venue-lbl">' +
+            '<span>' + samEsc(venue) + '</span>' +
+            '<div class="sam-venue-util-wrap">' +
+            '<div class="sam-venue-util-track"><div class="sam-venue-util-fill" style="width:' + utilPct + '%;background:' + utilColor + '"></div></div>' +
+            '<span class="sam-venue-util-pct">' + utilPct + '% utilized</span>' +
+            '</div></div>' +
+            '<div class="sam-timeline-venue-trk">' + gridLines + '</div>' +
+            '</div>';
+
+    spaces.forEach(function(space) {
+      var spBookings = spaceMap[space];
+      // Taller row if any booking in this row has a comment (3 lines of text)
+      var hasComment = spBookings.some(function(b) { return (b['System Comment'] || '').trim(); });
+      var blocks = '';
+      spBookings.forEach(function(b) {
+        var idx   = bookings.indexOf(b);
+        var start = samParseTime12(b['Start Time']);
+        var end   = samParseTime12(b['End Time']);
+        if (start === null || end === null || end <= start) return;
+        var leftPct  = Math.max(0, (start - TIMELINE_START_HR * 60) / totalMins * 100);
+        var widthPct = Math.min(100 - leftPct, (end - start) / totalMins * 100);
+        var desc    = b['Event Description'] || b['Account Name'] || '';
+        var comment = (b['System Comment'] || '').trim();
+        var timeStr = samMinsToStr(start) + ' \u2013 ' + samMinsToStr(end);
+        var col     = samStatusColor(b['Status - Event']);
+        blocks += '<div class="sam-timeline-block"' +
+                  ' style="left:' + leftPct.toFixed(2) + '%;width:' + widthPct.toFixed(2) + '%;background:' + col.grad + '"' +
+                  ' onclick="samShowPopup(event,' + idx + ')"' +
+                  ' onmouseenter="samShowHover(event,' + idx + ')"' +
+                  ' onmousemove="samMoveHover(event)"' +
+                  ' onmouseleave="samHideHover()">' +
+                  '<div class="sam-timeline-block-inner">' +
+                  '<div class="sam-timeline-block-title">' + samEsc(desc) + '</div>' +
+                  (comment ? '<div class="sam-timeline-block-comment">' + samEsc(comment) + '</div>' : '') +
+                  '<div class="sam-timeline-block-time">' + timeStr + '</div>' +
+                  '</div></div>';
+      });
+      var rowClass = 'sam-timeline-row' + (hasComment ? ' sam-timeline-row--tall' : '');
+      html += '<div class="' + rowClass + '">' +
+              '<div class="sam-timeline-label">' + samEsc(space) + '</div>' +
+              '<div class="sam-timeline-track">' + gridLines + nowLine + blocks + '</div>' +
+              '</div>';
+    });
+  });
+
+  html += '</div></div>';
+  return html;
+}
+
+// =============================================================
+// VENUE FILTER
+// =============================================================
+function samBuildVenueFilter() {
+  var el = document.getElementById('sam-venue-filter');
+  el.innerHTML = '<span class="sam-venue-filter-label">Venue:</span>' +
+    '<button class="sam-venue-btn active" onclick="samSetVenue(\'\')">All</button>' +
+    SAM_VENUE_LIST.map(function(v) {
+      return '<button class="sam-venue-btn" onclick="samSetVenue(\'' + v.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">' + samEsc(v) + '</button>';
+    }).join('');
+}
+function samSetVenue(v) {
+  samBookingsVenue = v;
+  samHidePopup(); samHideHover();
+  document.querySelectorAll('#sam-venue-filter .sam-venue-btn').forEach(function(b) {
+    b.classList.toggle('active', b.textContent.trim() === (v || 'All'));
+  });
+  samRenderBookings();
+}
+
+// =============================================================
+// STATUS LEGEND
+// =============================================================
+function samBuildStatusLegend() {
+  var el = document.getElementById('sam-status-legend');
+  var seen = {}, html = '<span class="sam-legend-label">Status:</span>';
+  SAM_STATUS_COLORS.forEach(function(c) {
+    if (c.label && !seen[c.label]) {
+      seen[c.label] = true;
+      html += '<span class="sam-legend-item">' +
+              '<span class="sam-legend-dot" style="background:' + c.solid + '"></span>' +
+              samEsc(c.label) + '</span>';
+    }
+  });
+  html += '<span class="sam-legend-item">' +
+          '<span class="sam-legend-dot" style="background:' + SAM_STATUS_DEFAULT.solid + '"></span>' +
+          samEsc(SAM_STATUS_DEFAULT.label) + '</span>';
+  el.innerHTML = html;
+}
+
+// =============================================================
+// BOOKINGS RENDER
+// =============================================================
+function samRenderBookings() {
+  document.getElementById('sam-label-bookings').textContent = samFmtDate(samBookingsDate);
+  samRenderWeekStrip('bookings');
+  if (samCalOpen && samCalWhich === 'bookings') samRenderCalGrid();
+
+  samFadeRender('sam-bookings', function(el) {
+    var filtered = samAllBookings.filter(function(r) {
+      var d = samParseBookingDate(r['Date']);
+      if (!d || !samSameDay(d, samBookingsDate)) return false;
+      if (/cancelled/i.test(r['Status - Event'] || '')) return false;
+      if (samBookingsVenue && (r['Venue'] || '').trim() !== samBookingsVenue) return false;
+      return true;
+    });
+    filtered.sort(function(a, b) { return (samParseTime12(a['Start Time'])||0) - (samParseTime12(b['Start Time'])||0); });
+
+    // Day summary chip
+    var sumEl = document.getElementById('sam-summary-bookings');
+    if (filtered.length) {
+      var vmap = {}, totalAttendance = 0;
+      filtered.forEach(function(r) {
+        vmap[(r['Venue'] || 'Other').trim()] = true;
+        var att = parseInt(r['Planned Attendance'] || '0', 10);
+        if (!isNaN(att)) totalAttendance += att;
+      });
+      var vc = Object.keys(vmap).length;
+      sumEl.textContent = filtered.length + ' booking' + (filtered.length !== 1 ? 's' : '') +
+        ' \u00b7 ' + vc + ' venue' + (vc !== 1 ? 's' : '') +
+        (totalAttendance > 0 ? ' \u00b7 ' + totalAttendance + ' guests expected' : '');
+      sumEl.style.display = '';
+    } else {
+      sumEl.style.display = 'none';
+    }
+
+    if (!filtered.length) {
+      el.innerHTML = '<div class="sam-empty">' + SAM_EMPTY_SVG + '<p>No bookings for this date.</p></div>';
+      return;
+    }
+    el.innerHTML = samRenderTimeline(filtered);
+  });
+}
+
+// =============================================================
+// FUNCTIONS RENDER
+// =============================================================
+var SAM_FN_COLS = [
+  { label: 'Event',   key: 'Event Name' },
+  { label: 'Space',   key: 'Space Description' },
+  { label: 'Start',   get: function(r) { return samMinsToStr(samParseTimeISO(r['Start Time'])); } },
+  { label: 'End',     get: function(r) { return samMinsToStr(samParseTimeISO(r['End Time'])); } },
+  { label: 'Ordered', key: 'Ordered Attendance' },
+  { label: 'Actual',  key: 'Actual Attendance' }
+];
+
+function samRenderFunctions() {
+  document.getElementById('sam-label-functions').textContent = samFmtDate(samFunctionsDate);
+  samRenderWeekStrip('functions');
+  if (samCalOpen && samCalWhich === 'functions') samRenderCalGrid();
+
+  samFadeRender('sam-functions', function(el) {
+    var filtered = samAllFunctions.filter(function(r) {
+      var d = samParseISODate(r['Start Date']);
+      return d && samSameDay(d, samFunctionsDate);
+    });
+    filtered.sort(function(a,b) { return (samParseTimeISO(a['Start Time'])||0) - (samParseTimeISO(b['Start Time'])||0); });
+
+    var sumEl = document.getElementById('sam-summary-functions');
+    if (filtered.length) {
+      sumEl.textContent = filtered.length + ' function' + (filtered.length !== 1 ? 's' : '');
+      sumEl.style.display = '';
+    } else {
+      sumEl.style.display = 'none';
+    }
+
+    if (!filtered.length) {
+      el.innerHTML = '<div class="sam-empty">' + SAM_EMPTY_SVG + '<p>No functions for this date.</p></div>';
+      return;
+    }
+    var html = '<table class="sam-table"><thead><tr>';
+    SAM_FN_COLS.forEach(function(c) { html += '<th>' + c.label + '</th>'; });
+    html += '</tr></thead><tbody>';
+    filtered.forEach(function(r) {
+      html += '<tr>';
+      SAM_FN_COLS.forEach(function(c) { html += '<td>' + samEsc(c.get ? c.get(r) : (r[c.key] || '')) + '</td>'; });
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    el.innerHTML = html;
+  });
+}
+
+// =============================================================
+// MONTH VIEW TAB
+// =============================================================
+function samRenderMonthView() {
+  var el    = document.getElementById('sam-month-view');
+  var today = samToday();
+  var firstDow = new Date(samMonthYear, samMonthMonth, 1).getDay();
+  var daysInMo = new Date(samMonthYear, samMonthMonth + 1, 0).getDate();
+
+  var html = '<div class="sam-month-nav">' +
+    '<button class="sam-month-nav-btn" onclick="samNavMonthView(-1)">&#8592; Prev</button>' +
+    '<span class="sam-month-nav-title">' + SAM_MONTHS[samMonthMonth] + ' ' + samMonthYear + '</span>' +
+    '<button class="sam-month-nav-btn" onclick="samNavMonthView(1)">Next &#8594;</button>' +
+    '</div><div class="sam-month-grid">';
+
+  SAM_DAYS_SHORT.forEach(function(d) { html += '<div class="sam-month-dh">' + d + '</div>'; });
+  for (var e = 0; e < firstDow; e++) html += '<div class="sam-month-day empty"></div>';
+
+  for (var d = 1; d <= daysInMo; d++) {
+    var date     = new Date(samMonthYear, samMonthMonth, d);
+    var isToday  = samSameDay(date, today);
+    var isActive = samSameDay(date, samBookingsDate);
+    var cls      = 'sam-month-day' + (isToday ? ' today' : '') + (isActive ? ' active' : '');
+    var stats    = samGetDayStats(date);
+    var busy     = samBusynessStyle(stats.count, stats.attendance);
+    var statsHtml = '';
+    if (stats.count > 0) {
+      var dotColor = busy ? (isActive ? 'rgba(255,255,255,0.85)' : busy.color) : '#aaa';
+      statsHtml = '<div class="sam-month-day-stats">' +
+        '<div><span class="sam-month-busy-dot" style="background:' + dotColor + '"></span>' +
+        stats.count + ' booking' + (stats.count !== 1 ? 's' : '') + '</div>' +
+        (stats.attendance > 0 ? '<div style="padding-left:10px;font-size:0.6rem;opacity:0.8">' + stats.attendance.toLocaleString() + ' guests</div>' : '') +
+        '</div>';
+    }
+    html += '<div class="' + cls + '" onclick="samGoDateMonth(' + samMonthYear + ',' + samMonthMonth + ',' + d + ')">' +
+            '<div class="sam-month-day-num">' + d + '</div>' + statsHtml + '</div>';
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+function samNavMonthView(delta) {
+  samMonthMonth += delta;
+  if (samMonthMonth > 11) { samMonthMonth = 0; samMonthYear++; }
+  if (samMonthMonth < 0)  { samMonthMonth = 11; samMonthYear--; }
+  samRenderMonthView();
+}
+function samGoDateMonth(y, m, d) {
+  samBookingsDate = new Date(y, m, d);
+  samShowTab('bookings');
+  samRenderBookings();
+}
+
+// =============================================================
+// EVENTS (CARDS) TAB
+// =============================================================
+function samRenderCards() {
+  document.getElementById('sam-label-cards').textContent = samFmtDate(samCardsDate);
+  samRenderWeekStrip('cards');
+  if (samCalOpen && samCalWhich === 'cards') samRenderCalGrid();
+
+  samFadeRender('sam-cards', function(el) {
+    var filtered = samAllBookings.filter(function(r) {
+      var d = samParseBookingDate(r['Date']);
+      if (!d || !samSameDay(d, samCardsDate)) return false;
+      if (/cancelled/i.test(r['Status - Event'] || '')) return false;
+      return true;
+    });
+
+    var sumEl = document.getElementById('sam-summary-cards');
+    if (filtered.length) {
+      sumEl.textContent = filtered.length + ' booking' + (filtered.length !== 1 ? 's' : '');
+      sumEl.style.display = '';
+    } else { sumEl.style.display = 'none'; }
+
+    if (!filtered.length) {
+      el.innerHTML = '<div class="sam-empty">' + SAM_EMPTY_SVG + '<p>No events for this date.</p></div>';
+      return;
+    }
+
+    // Group bookings by organisation (Account Name)
+    var orgMap = {};
+    filtered.forEach(function(b) {
+      var org = (b['Account Name'] || 'Unknown').trim();
+      if (!orgMap[org]) orgMap[org] = { bookings: [], contact: '', phone: '' };
+      orgMap[org].bookings.push(b);
+      if (!orgMap[org].contact && (b['Contact - Full Name'] || '').trim()) {
+        orgMap[org].contact = b['Contact - Full Name'].trim();
+        orgMap[org].phone   = (b['Contact - Phone'] || '').trim();
+      }
+    });
+
+    // Sort orgs by earliest booking start time
+    var orgs = Object.keys(orgMap).sort(function(a, b) {
+      return (samParseTime12(orgMap[a].bookings[0]['Start Time']) || 0) -
+             (samParseTime12(orgMap[b].bookings[0]['Start Time']) || 0);
+    });
+
+    var html = '<div class="sam-cards-grid">';
+    orgs.forEach(function(org) {
+      var data = orgMap[org];
+      data.bookings.sort(function(a, b) {
+        return (samParseTime12(a['Start Time']) || 0) - (samParseTime12(b['Start Time']) || 0);
+      });
+      html += '<div class="sam-card">' +
+              '<div class="sam-card-hdr"><div class="sam-card-org">' + samEsc(org) + '</div></div>' +
+              '<div class="sam-card-body">';
+      data.bookings.forEach(function(b) {
+        var start   = samParseTime12(b['Start Time']);
+        var end     = samParseTime12(b['End Time']);
+        var timeStr = samMinsToStr(start) + ' \u2013 ' + samMinsToStr(end);
+        var space   = (b['Space'] || '').trim();
+        var desc    = (b['Event Description'] || '').trim();
+        var col     = samStatusColor(b['Status - Event']);
+        html += '<div class="sam-card-booking">' +
+                '<div>' +
+                '<div class="sam-card-space-name">' +
+                '<span class="sam-card-status-dot" style="background:' + col.solid + '"></span>' +
+                samEsc(space || desc || '\u2014') + '</div>' +
+                (desc && space ? '<div class="sam-card-event-desc">' + samEsc(desc) + '</div>' : '') +
+                '</div>' +
+                '<div class="sam-card-time">' + samEsc(timeStr) + '</div>' +
+                '</div>';
+      });
+      html += '</div>' +
+              '<div class="sam-card-footer">' +
+              (data.contact ? '<span class="sam-card-contact-name">' + samEsc(data.contact) + '</span>' : '<span style="color:#bbb;font-style:italic">No contact</span>') +
+              (data.phone   ? '<span>' + samEsc(data.phone) + '</span>' : '') +
+              '</div></div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  });
+}
+
+// =============================================================
+// CSV PARSER
+// =============================================================
+function samParseCSV(text) {
+  var rows = [];
+  text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').forEach(function(line) {
+    if (!line.trim()) return;
+    var row = [], field = '', inQ = false;
+    for (var c = 0; c < line.length; c++) {
+      var ch = line[c];
+      if (ch === '"') { if (inQ && line[c+1] === '"') { field += '"'; c++; } else { inQ = !inQ; } }
+      else if (ch === ',' && !inQ) { row.push(field.trim()); field = ''; }
+      else { field += ch; }
+    }
+    row.push(field.trim()); rows.push(row);
+  });
+  return rows;
+}
+function samCSVtoObj(rows) {
+  if (rows.length < 2) return [];
+  var h = rows[0];
+  return rows.slice(1).map(function(r) { var o = {}; h.forEach(function(k,i) { o[k] = (r[i]||'').trim(); }); return o; });
+}
+
+// =============================================================
+// INIT
+// =============================================================
+samBuildVenueFilter();
+samBuildStatusLegend();
+
+// Set labels, week strips, and skeleton immediately — data loads async
+document.getElementById('sam-label-bookings').textContent  = samFmtDate(samBookingsDate);
+document.getElementById('sam-label-functions').textContent = samFmtDate(samFunctionsDate);
+document.getElementById('sam-label-cards').textContent     = samFmtDate(samCardsDate);
+samRenderWeekStrip('bookings');
+samRenderWeekStrip('functions');
+samRenderWeekStrip('cards');
+document.getElementById('sam-bookings').innerHTML  = samRenderSkeleton();
+document.getElementById('sam-functions').innerHTML = samRenderSkeleton();
+
+// Load bookings
+fetch(SAM_BOOKINGS_URL)
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    samAllBookings = data;
+    samRenderBookings();
+    // Refresh other strips so busyness dots appear immediately
+    samRenderWeekStrip('functions');
+    samRenderWeekStrip('cards');
+  })
+  .catch(function(err) {
+    document.getElementById('sam-bookings').innerHTML = '<p class="sam-error">Could not load bookings: ' + err.message + '</p>';
+  });
+
+// Load functions
+var samFnEl = document.getElementById('sam-functions');
+if (SAM_FUNCTIONS_URL) {
+  fetch(SAM_FUNCTIONS_URL)
+    .then(function(r) { return r.json(); })
+    .then(function(data) { samAllFunctions = data; samRenderFunctions(); })
+    .catch(function(err) { samFnEl.innerHTML = '<p class="sam-error">Could not load functions: ' + err.message + '</p>'; });
+} else {
+  fetch('https://corsproxy.io/?' + encodeURIComponent(SAM_FUNCTIONS_CSV))
+    .then(function(r) { return r.text(); })
+    .then(function(text) { samAllFunctions = samCSVtoObj(samParseCSV(text)); samRenderFunctions(); })
+    .catch(function(err) { samFnEl.innerHTML = '<p class="sam-error">Could not load functions: ' + err.message + '</p>'; });
+}
+</script>
