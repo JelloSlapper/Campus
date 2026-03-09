@@ -1,201 +1,201 @@
 
 <!--
-  SAM Schedule Widget
+  Campus Schedule Widget
   Embed this in a Squarespace Code Block.
 -->
 
 <style>
-  .sam-widget { font-family: inherit; max-width: 100%; }
+  .campus-widget { font-family: inherit; max-width: 100%; }
 
   /* --- Tabs --- */
-  .sam-tabs { display: flex; border-bottom: 2px solid #222; margin-bottom: 1.25rem; }
-  .sam-tab {
+  .campus-tabs { display: flex; border-bottom: 2px solid #222; margin-bottom: 1.25rem; }
+  .campus-tab {
     background: none; border: none; border-bottom: 3px solid transparent;
     padding: 0.6rem 1.5rem; font-size: 1rem; font-family: inherit;
     cursor: pointer; margin-bottom: -2px; transition: background 0.15s;
   }
-  .sam-tab.active { border-bottom-color: #222; font-weight: 600; }
-  .sam-tab:hover:not(.active) { background: #f5f5f5; }
+  .campus-tab.active { border-bottom-color: #222; font-weight: 600; }
+  .campus-tab:hover:not(.active) { background: #f5f5f5; }
 
   /* --- Week strip --- */
-  .sam-week-strip { display: flex; gap: 4px; margin-bottom: 0.75rem; }
-  .sam-week-day {
+  .campus-week-strip { display: flex; gap: 4px; margin-bottom: 0.75rem; }
+  .campus-week-day {
     flex: 1; padding: 6px 4px; border: 1px solid #ddd; background: #fff;
     cursor: pointer; border-radius: 6px; display: flex; flex-direction: column;
     align-items: center; gap: 2px; font-family: inherit; transition: all 0.15s;
   }
-  .sam-week-day:hover:not(.active) { background: #f5f5f5; border-color: #bbb; }
-  .sam-week-day.active  { background: #222; color: #fff; border-color: #222; }
-  .sam-week-day.today:not(.active) { border-color: #2c6fad; color: #2c6fad; }
-  .sam-week-day-name { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.7; }
-  .sam-week-day-num  { font-size: 0.95rem; font-weight: 600; }
+  .campus-week-day:hover:not(.active) { background: #f5f5f5; border-color: #bbb; }
+  .campus-week-day.active  { background: #222; color: #fff; border-color: #222; }
+  .campus-week-day.today:not(.active) { border-color: #2c6fad; color: #2c6fad; }
+  .campus-week-day-name { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.7; }
+  .campus-week-day-num  { font-size: 0.95rem; font-weight: 600; }
 
   /* --- Date nav --- */
-  .sam-date-nav { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.9rem; flex-wrap: wrap; }
-  .sam-date-nav button {
+  .campus-date-nav { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.9rem; flex-wrap: wrap; }
+  .campus-date-nav button {
     background: #222; color: #fff; border: none;
     padding: 0.4rem 1rem; cursor: pointer; font-size: 0.88rem; border-radius: 4px;
     transition: background 0.15s;
   }
-  .sam-date-nav button:hover { background: #444; }
-  .sam-date-label { font-size: 1.1rem; font-weight: 600; }
-  .sam-today-btn  { background: #888 !important; font-size: 0.8rem !important; }
+  .campus-date-nav button:hover { background: #444; }
+  .campus-date-label { font-size: 1.1rem; font-weight: 600; }
+  .campus-today-btn  { background: #888 !important; font-size: 0.8rem !important; }
 
   /* --- Venue filter --- */
-  .sam-venue-filter { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.6rem; align-items: center; }
-  .sam-venue-filter-label { font-size: 0.73rem; color: #999; margin-right: 0.2rem; text-transform: uppercase; letter-spacing: 0.05em; }
-  .sam-venue-btn {
+  .campus-venue-filter { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.6rem; align-items: center; }
+  .campus-venue-filter-label { font-size: 0.73rem; color: #999; margin-right: 0.2rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .campus-venue-btn {
     background: #f0f0f0; color: #444; border: 1px solid #ccc;
     padding: 0.28rem 0.85rem; cursor: pointer; font-size: 0.8rem; border-radius: 20px;
     font-family: inherit; transition: all 0.15s;
   }
-  .sam-venue-btn:hover { background: #e0e0e0; }
-  .sam-venue-btn.active { background: #222; color: #fff; border-color: #222; }
+  .campus-venue-btn:hover { background: #e0e0e0; }
+  .campus-venue-btn.active { background: #222; color: #fff; border-color: #222; }
 
   /* --- Status legend --- */
-  .sam-status-legend {
+  .campus-status-legend {
     display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; margin-bottom: 1.1rem;
     padding: 0.45rem 0.75rem; background: #f8f8f8; border-radius: 6px;
     border: 1px solid #eee; align-items: center;
   }
-  .sam-legend-label { font-size: 0.68rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.06em; margin-right: 0.15rem; }
-  .sam-legend-item  { display: flex; align-items: center; gap: 5px; font-size: 0.73rem; color: #555; }
-  .sam-legend-dot   { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .campus-legend-label { font-size: 0.68rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.06em; margin-right: 0.15rem; }
+  .campus-legend-item  { display: flex; align-items: center; gap: 5px; font-size: 0.73rem; color: #555; }
+  .campus-legend-dot   { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
 
   /* --- Timeline --- */
-  .sam-timeline { overflow-x: auto; min-width: 0; }
-  .sam-timeline-header { display: flex; margin-left: 190px; margin-bottom: 4px; }
-  .sam-timeline-hour {
+  .campus-timeline { overflow-x: auto; min-width: 0; }
+  .campus-timeline-header { display: flex; margin-left: 190px; margin-bottom: 4px; }
+  .campus-timeline-hour {
     flex: 1; font-size: 0.67rem; color: #aaa; font-weight: 500;
     text-align: left; padding: 0 0 3px 3px;
   }
-  .sam-timeline-rows { border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; }
+  .campus-timeline-rows { border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; }
 
   /* Venue section header */
-  .sam-timeline-venue-hdr { display: flex; background: #f0f0f0; border-bottom: 2px solid #ddd; }
-  .sam-timeline-venue-lbl {
+  .campus-timeline-venue-hdr { display: flex; background: #f0f0f0; border-bottom: 2px solid #ddd; }
+  .campus-timeline-venue-lbl {
     width: 190px; min-width: 190px; font-size: 0.67rem; font-weight: 700;
     color: #777; text-transform: uppercase; letter-spacing: 0.07em;
     padding: 6px 12px; border-right: 1px solid #e0e0e0; display: flex; align-items: center;
   }
-  .sam-timeline-venue-trk { flex: 1; min-height: 16px; position: relative; }
+  .campus-timeline-venue-trk { flex: 1; min-height: 16px; position: relative; }
 
   /* Space rows */
-  .sam-timeline-row {
+  .campus-timeline-row {
     display: flex; align-items: stretch; min-height: 56px;
     border-bottom: 1px solid #e8e8e8;
   }
-  .sam-timeline-row:last-child { border-bottom: none; }
-  .sam-timeline-row:nth-child(even) { background: #fafafa; }
-  .sam-timeline-label {
+  .campus-timeline-row:last-child { border-bottom: none; }
+  .campus-timeline-row:nth-child(even) { background: #fafafa; }
+  .campus-timeline-label {
     width: 190px; min-width: 190px; font-size: 0.77rem;
     padding: 0 10px; display: flex; align-items: center; font-weight: 500;
     color: #333; border-right: 1px solid #e8e8e8; background: inherit; gap: 6px;
   }
-  .sam-space-name { flex: 1; }
-  .sam-count-badge {
+  .campus-space-name { flex: 1; }
+  .campus-count-badge {
     display: inline-flex; align-items: center; justify-content: center;
     background: #ddd; color: #666; border-radius: 10px;
     font-size: 0.62rem; min-width: 18px; height: 18px; padding: 0 4px;
     font-weight: 700; flex-shrink: 0;
   }
 
-  .sam-timeline-track { flex: 1; position: relative; min-height: 56px; }
-  .sam-timeline-gridline {
+  .campus-timeline-track { flex: 1; position: relative; min-height: 56px; }
+  .campus-timeline-gridline {
     position: absolute; top: 0; bottom: 0; width: 1px;
     background: #eee; pointer-events: none;
   }
 
   /* "Now" indicator */
-  .sam-timeline-nowline {
+  .campus-timeline-nowline {
     position: absolute; top: 0; bottom: 0; width: 2px;
     background: rgba(220, 50, 50, 0.75); z-index: 5; pointer-events: none;
   }
-  .sam-timeline-nowline::before {
+  .campus-timeline-nowline::before {
     content: ''; position: absolute; top: -4px; left: -4px;
     width: 10px; height: 10px; border-radius: 50%; background: #dc3232;
   }
 
   /* Booking blocks */
-  .sam-timeline-block {
+  .campus-timeline-block {
     position: absolute; top: 7px; bottom: 7px;
     border-radius: 4px; overflow: hidden; cursor: pointer; min-width: 4px;
     box-shadow: 0 1px 4px rgba(0,0,0,0.2);
     transition: filter 0.15s, box-shadow 0.15s;
   }
-  .sam-timeline-block:hover {
+  .campus-timeline-block:hover {
     filter: brightness(1.1);
     box-shadow: 0 3px 10px rgba(0,0,0,0.28);
     z-index: 10;
   }
-  .sam-timeline-block-inner   { padding: 4px 7px; }
-  .sam-timeline-block-title   { font-size: 0.72rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
-  .sam-timeline-block-comment { font-size: 0.63rem; color: rgba(255,255,255,0.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-style: italic; margin-top: 1px; }
-  .sam-timeline-block-time    { font-size: 0.64rem; color: rgba(255,255,255,0.8); white-space: nowrap; margin-top: 2px; }
+  .campus-timeline-block-inner   { padding: 4px 7px; }
+  .campus-timeline-block-title   { font-size: 0.72rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+  .campus-timeline-block-comment { font-size: 0.63rem; color: rgba(255,255,255,0.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-style: italic; margin-top: 1px; }
+  .campus-timeline-block-time    { font-size: 0.64rem; color: rgba(255,255,255,0.8); white-space: nowrap; margin-top: 2px; }
 
   /* --- Popup --- */
-  #sam-popup {
+  #campus-popup {
     position: fixed; z-index: 9999;
     background: #fff; border: 1px solid #ddd; border-radius: 8px;
     box-shadow: 0 6px 24px rgba(0,0,0,0.15);
     padding: 14px 16px; min-width: 230px; max-width: 315px;
     pointer-events: none; overflow: hidden;
   }
-  #sam-popup h4          { margin: 0 0 5px; font-size: 0.88rem; color: #111; line-height: 1.3; }
-  .sam-popup-time        { font-size: 0.78rem; color: #444; font-weight: 600; margin-bottom: 7px; }
-  .sam-popup-status      { display: inline-block; margin-bottom: 9px; padding: 2px 9px; border-radius: 10px; font-size: 0.69rem; font-weight: 600; color: #fff; }
-  .sam-popup-comment     { font-size: 0.75rem; color: #666; font-style: italic; margin: 0 0 9px; padding: 6px 8px; background: #f6f6f6; border-radius: 4px; border-left: 3px solid #ddd; line-height: 1.4; }
-  .sam-popup-row         { font-size: 0.78rem; color: #444; margin-bottom: 4px; }
-  .sam-popup-row span    { font-weight: 600; color: #111; }
-  .sam-popup-venue       { font-size: 0.69rem; color: #bbb; margin-top: 8px; }
+  #campus-popup h4          { margin: 0 0 5px; font-size: 0.88rem; color: #111; line-height: 1.3; }
+  .campus-popup-time        { font-size: 0.78rem; color: #444; font-weight: 600; margin-bottom: 7px; }
+  .campus-popup-status      { display: inline-block; margin-bottom: 9px; padding: 2px 9px; border-radius: 10px; font-size: 0.69rem; font-weight: 600; color: #fff; }
+  .campus-popup-comment     { font-size: 0.75rem; color: #666; font-style: italic; margin: 0 0 9px; padding: 6px 8px; background: #f6f6f6; border-radius: 4px; border-left: 3px solid #ddd; line-height: 1.4; }
+  .campus-popup-row         { font-size: 0.78rem; color: #444; margin-bottom: 4px; }
+  .campus-popup-row span    { font-weight: 600; color: #111; }
+  .campus-popup-venue       { font-size: 0.69rem; color: #bbb; margin-top: 8px; }
 
   /* --- Functions table --- */
-  .sam-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-  .sam-table th { background: #222; color: #fff; padding: 0.6rem 0.75rem; text-align: left; font-weight: 600; white-space: nowrap; }
-  .sam-table td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
-  .sam-table tr:nth-child(even) td { background: #f7f7f7; }
+  .campus-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  .campus-table th { background: #222; color: #fff; padding: 0.6rem 0.75rem; text-align: left; font-weight: 600; white-space: nowrap; }
+  .campus-table td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
+  .campus-table tr:nth-child(even) td { background: #f7f7f7; }
 
   /* --- States --- */
-  .sam-empty { text-align: center; padding: 3rem 1rem; color: #ccc; }
-  .sam-empty svg { display: block; margin: 0 auto 0.75rem; opacity: 0.35; }
-  .sam-empty p { font-size: 0.9rem; margin: 0; color: #bbb; }
-  .sam-loading { color: #999; font-style: italic; padding: 0.5rem 0; }
-  .sam-error   { color: #c00; }
+  .campus-empty { text-align: center; padding: 3rem 1rem; color: #ccc; }
+  .campus-empty svg { display: block; margin: 0 auto 0.75rem; opacity: 0.35; }
+  .campus-empty p { font-size: 0.9rem; margin: 0; color: #bbb; }
+  .campus-loading { color: #999; font-style: italic; padding: 0.5rem 0; }
+  .campus-error   { color: #c00; }
 </style>
 
-<div id="sam-popup" style="display:none"></div>
+<div id="campus-popup" style="display:none"></div>
 
-<div class="sam-widget">
+<div class="campus-widget">
 
-  <div class="sam-tabs">
-    <button class="sam-tab active" onclick="samShowTab('bookings')">Space Bookings</button>
-    <button class="sam-tab"        onclick="samShowTab('functions')">Functions</button>
+  <div class="campus-tabs">
+    <button class="campus-tab active" onclick="campusShowTab('bookings')">Space Bookings</button>
+    <button class="campus-tab"        onclick="campusShowTab('functions')">Functions</button>
   </div>
 
   <!-- Space Bookings tab -->
-  <div id="sam-tab-bookings">
-    <div id="sam-week-strip-bookings"></div>
-    <div class="sam-date-nav">
-      <button onclick="samChangeDay('bookings',-1)">&#8592; Prev</button>
-      <span class="sam-date-label" id="sam-label-bookings"></span>
-      <button onclick="samChangeDay('bookings',1)">Next &#8594;</button>
-      <button class="sam-today-btn" onclick="samGoToday('bookings')">Today</button>
+  <div id="campus-tab-bookings">
+    <div id="campus-week-strip-bookings"></div>
+    <div class="campus-date-nav">
+      <button onclick="campusChangeDay('bookings',-1)">&#8592; Prev</button>
+      <span class="campus-date-label" id="campus-label-bookings"></span>
+      <button onclick="campusChangeDay('bookings',1)">Next &#8594;</button>
+      <button class="campus-today-btn" onclick="campusGoToday('bookings')">Today</button>
     </div>
-    <div id="sam-venue-filter" class="sam-venue-filter"></div>
-    <div id="sam-status-legend" class="sam-status-legend"></div>
-    <div id="sam-bookings"><p class="sam-loading">Loading bookings…</p></div>
+    <div id="campus-venue-filter" class="campus-venue-filter"></div>
+    <div id="campus-status-legend" class="campus-status-legend"></div>
+    <div id="campus-bookings"><p class="campus-loading">Loading bookings…</p></div>
   </div>
 
   <!-- Functions tab -->
-  <div id="sam-tab-functions" style="display:none">
-    <div id="sam-week-strip-functions"></div>
-    <div class="sam-date-nav">
-      <button onclick="samChangeDay('functions',-1)">&#8592; Prev</button>
-      <span class="sam-date-label" id="sam-label-functions"></span>
-      <button onclick="samChangeDay('functions',1)">Next &#8594;</button>
-      <button class="sam-today-btn" onclick="samGoToday('functions')">Today</button>
+  <div id="campus-tab-functions" style="display:none">
+    <div id="campus-week-strip-functions"></div>
+    <div class="campus-date-nav">
+      <button onclick="campusChangeDay('functions',-1)">&#8592; Prev</button>
+      <span class="campus-date-label" id="campus-label-functions"></span>
+      <button onclick="campusChangeDay('functions',1)">Next &#8594;</button>
+      <button class="campus-today-btn" onclick="campusGoToday('functions')">Today</button>
     </div>
-    <div id="sam-functions"><p class="sam-loading">Loading functions…</p></div>
+    <div id="campus-functions"><p class="campus-loading">Loading functions…</p></div>
   </div>
 
 </div>
@@ -204,15 +204,15 @@
 // =============================================================
 // CONFIG
 // =============================================================
-var SAM_BOOKINGS_URL  = 'https://script.google.com/macros/s/AKfycbyyJ2TEB86Vza1gu8WZvdxSq-SYN7aTP0zp_ZTAzsMhmpUGpnyGvsZq42OLE84SCQxk/exec';
-var SAM_FUNCTIONS_URL = ''; // Paste Functions Apps Script URL here when ready
-var SAM_FUNCTIONS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQNRTnGvZzVlyKCzKfbKQ5eXmEX0WhoZ_u05vNzRCONxKjRt0ZYfkgoKT0oP9LLkKu8Vwd528T6Zt0G/pub?gid=58099842&single=true&output=csv';
+var CAMPUS_BOOKINGS_URL  = 'https://script.google.com/macros/s/AKfycbyyJ2TEB86Vza1gu8WZvdxSq-SYN7aTP0zp_ZTAzsMhmpUGpnyGvsZq42OLE84SCQxk/exec';
+var CAMPUS_FUNCTIONS_URL = ''; // Paste Functions Apps Script URL here when ready
+var CAMPUS_FUNCTIONS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQNRTnGvZzVlyKCzKfbKQ5eXmEX0WhoZ_u05vNzRCONxKjRt0ZYfkgoKT0oP9LLkKu8Vwd528T6Zt0G/pub?gid=58099842&single=true&output=csv';
 
 var TIMELINE_START_HR = 7;
 var TIMELINE_END_HR   = 22;
 
 // Fixed venue list (display order for timeline grouping and filter buttons)
-var SAM_VENUE_LIST = [
+var CAMPUS_VENUE_LIST = [
   'TransAlta Performing Arts Studios',
   'Calgary Arts Academy',
   'Sam Centre',
@@ -221,7 +221,7 @@ var SAM_VENUE_LIST = [
 ];
 
 // Status → color mapping (keyword match, first match wins)
-var SAM_STATUS_COLORS = [
+var CAMPUS_STATUS_COLORS = [
   { test: /confirmed/i,   grad: 'linear-gradient(135deg,#2d9e6b,#1e7a50)', solid: '#2d9e6b', label: 'Confirmed'  },
   { test: /reserved/i,    grad: 'linear-gradient(135deg,#2d9e6b,#1e7a50)', solid: '#2d9e6b', label: 'Reserved'   },
   { test: /internal/i,    grad: 'linear-gradient(135deg,#2c6fad,#1e5a94)', solid: '#2c6fad', label: 'Internal'   },
@@ -231,102 +231,102 @@ var SAM_STATUS_COLORS = [
   { test: /\bhold\b/i,    grad: 'linear-gradient(135deg,#888,#666)',        solid: '#888888', label: 'Hold'       },
   { test: /blocked/i,     grad: 'linear-gradient(135deg,#888,#666)',        solid: '#888888', label: 'Blocked'    },
 ];
-var SAM_STATUS_DEFAULT = { grad: 'linear-gradient(135deg,#546e7a,#37474f)', solid: '#546e7a', label: '' };
+var CAMPUS_STATUS_DEFAULT = { grad: 'linear-gradient(135deg,#546e7a,#37474f)', solid: '#546e7a', label: '' };
 
-function samStatusColor(status) {
-  if (!status) return SAM_STATUS_DEFAULT;
-  for (var i = 0; i < SAM_STATUS_COLORS.length; i++) {
-    if (SAM_STATUS_COLORS[i].test.test(status)) return SAM_STATUS_COLORS[i];
+function campusStatusColor(status) {
+  if (!status) return CAMPUS_STATUS_DEFAULT;
+  for (var i = 0; i < CAMPUS_STATUS_COLORS.length; i++) {
+    if (CAMPUS_STATUS_COLORS[i].test.test(status)) return CAMPUS_STATUS_COLORS[i];
   }
-  return SAM_STATUS_DEFAULT;
+  return CAMPUS_STATUS_DEFAULT;
 }
 
 // =============================================================
 // STATE
 // =============================================================
-var samAllBookings   = [];
-var samAllFunctions  = [];
-var samBookingsDate  = samToday();
-var samFunctionsDate = samToday();
-var samBookingsVenue = '';
+var campusAllBookings   = [];
+var campusAllFunctions  = [];
+var campusBookingsDate  = campusToday();
+var campusFunctionsDate = campusToday();
+var campusBookingsVenue = '';
 
-function samToday() { var d = new Date(); d.setHours(0,0,0,0); return d; }
+function campusToday() { var d = new Date(); d.setHours(0,0,0,0); return d; }
 
 // =============================================================
 // UTILITIES
 // =============================================================
-function samEsc(s) {
+function campusEsc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-var SAM_MONTHS     = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-var SAM_DAYS       = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-var SAM_DAYS_SHORT = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+var CAMPUS_MONTHS     = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var CAMPUS_DAYS       = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var CAMPUS_DAYS_SHORT = ['Su','Mo','Tu','We','Th','Fr','Sa'];
 
-function samFmtDate(d) {
-  return SAM_DAYS[d.getDay()] + ', ' + SAM_MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+function campusFmtDate(d) {
+  return CAMPUS_DAYS[d.getDay()] + ', ' + CAMPUS_MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
 }
-function samSameDay(a, b) {
+function campusSameDay(a, b) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
 // =============================================================
 // TAB
 // =============================================================
-function samShowTab(tab) {
-  document.getElementById('sam-tab-bookings').style.display  = tab === 'bookings'  ? '' : 'none';
-  document.getElementById('sam-tab-functions').style.display = tab === 'functions' ? '' : 'none';
-  var tabs = document.querySelectorAll('.sam-tab');
+function campusShowTab(tab) {
+  document.getElementById('campus-tab-bookings').style.display  = tab === 'bookings'  ? '' : 'none';
+  document.getElementById('campus-tab-functions').style.display = tab === 'functions' ? '' : 'none';
+  var tabs = document.querySelectorAll('.campus-tab');
   tabs[0].classList.toggle('active', tab === 'bookings');
   tabs[1].classList.toggle('active', tab === 'functions');
-  samHidePopup();
+  campusHidePopup();
 }
 
 // =============================================================
 // DATE NAVIGATION
 // =============================================================
-function samChangeDay(which, delta) {
-  samHidePopup();
-  if (which === 'bookings') { samBookingsDate.setDate(samBookingsDate.getDate() + delta); samRenderBookings(); }
-  else                      { samFunctionsDate.setDate(samFunctionsDate.getDate() + delta); samRenderFunctions(); }
+function campusChangeDay(which, delta) {
+  campusHidePopup();
+  if (which === 'bookings') { campusBookingsDate.setDate(campusBookingsDate.getDate() + delta); campusRenderBookings(); }
+  else                      { campusFunctionsDate.setDate(campusFunctionsDate.getDate() + delta); campusRenderFunctions(); }
 }
-function samGoToday(which) {
-  samHidePopup();
-  if (which === 'bookings') { samBookingsDate = samToday(); samRenderBookings(); }
-  else                      { samFunctionsDate = samToday(); samRenderFunctions(); }
+function campusGoToday(which) {
+  campusHidePopup();
+  if (which === 'bookings') { campusBookingsDate = campusToday(); campusRenderBookings(); }
+  else                      { campusFunctionsDate = campusToday(); campusRenderFunctions(); }
 }
-function samGoDate(which, y, m, d) {
-  samHidePopup();
-  if (which === 'bookings') { samBookingsDate = new Date(y, m, d); samRenderBookings(); }
-  else                      { samFunctionsDate = new Date(y, m, d); samRenderFunctions(); }
+function campusGoDate(which, y, m, d) {
+  campusHidePopup();
+  if (which === 'bookings') { campusBookingsDate = new Date(y, m, d); campusRenderBookings(); }
+  else                      { campusFunctionsDate = new Date(y, m, d); campusRenderFunctions(); }
 }
 
 // =============================================================
 // WEEK STRIP
 // =============================================================
-function samRenderWeekStrip(which) {
-  var cur = which === 'bookings' ? samBookingsDate : samFunctionsDate;
+function campusRenderWeekStrip(which) {
+  var cur = which === 'bookings' ? campusBookingsDate : campusFunctionsDate;
   var startOfWeek = new Date(cur);
   startOfWeek.setDate(cur.getDate() - cur.getDay());
-  var today = samToday();
-  var html = '<div class="sam-week-strip">';
+  var today = campusToday();
+  var html = '<div class="campus-week-strip">';
   for (var i = 0; i < 7; i++) {
     var d = new Date(startOfWeek);
     d.setDate(startOfWeek.getDate() + i);
-    var cls = 'sam-week-day' + (samSameDay(d, cur) ? ' active' : '') + (samSameDay(d, today) ? ' today' : '');
-    html += '<button class="' + cls + '" onclick="samGoDate(\'' + which + '\',' + d.getFullYear() + ',' + d.getMonth() + ',' + d.getDate() + ')">' +
-            '<span class="sam-week-day-name">' + SAM_DAYS_SHORT[d.getDay()] + '</span>' +
-            '<span class="sam-week-day-num">'  + d.getDate() + '</span>' +
+    var cls = 'campus-week-day' + (campusSameDay(d, cur) ? ' active' : '') + (campusSameDay(d, today) ? ' today' : '');
+    html += '<button class="' + cls + '" onclick="campusGoDate(\'' + which + '\',' + d.getFullYear() + ',' + d.getMonth() + ',' + d.getDate() + ')">' +
+            '<span class="campus-week-day-name">' + CAMPUS_DAYS_SHORT[d.getDay()] + '</span>' +
+            '<span class="campus-week-day-num">'  + d.getDate() + '</span>' +
             '</button>';
   }
   html += '</div>';
-  document.getElementById('sam-week-strip-' + which).innerHTML = html;
+  document.getElementById('campus-week-strip-' + which).innerHTML = html;
 }
 
 // =============================================================
 // TIME PARSING
 // =============================================================
-function samParseTime12(str) {
+function campusParseTime12(str) {
   if (!str) return null;
   var mFull = str.match(/\d{4} (\d{2}):(\d{2}):\d{2}/);
   if (mFull) return parseInt(mFull[1], 10) * 60 + parseInt(mFull[2], 10);
@@ -339,26 +339,26 @@ function samParseTime12(str) {
   }
   return null;
 }
-function samParseTimeISO(str) {
+function campusParseTimeISO(str) {
   if (!str) return null;
   var m = str.match(/T(\d{2}):(\d{2})/);
   return m ? parseInt(m[1], 10) * 60 + parseInt(m[2], 10) : null;
 }
-function samMinsToStr(mins) {
+function campusMinsToStr(mins) {
   if (mins === null || mins === undefined) return '';
   var h = Math.floor(mins / 60), m = mins % 60;
   var suf = h >= 12 ? 'p.m.' : 'a.m.';
   h = h % 12 || 12;
   return h + ':' + (m < 10 ? '0' : '') + m + ' ' + suf;
 }
-var SAM_MONTH_MAP = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-function samParseBookingDate(str) {
+var CAMPUS_MONTH_MAP = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+function campusParseBookingDate(str) {
   if (!str) return null;
   var m = str.match(/\w{3} (\w{3}) (\d{2}) (\d{4})/);
-  if (m && SAM_MONTH_MAP[m[1]] !== undefined) return new Date(+m[3], SAM_MONTH_MAP[m[1]], +m[2]);
+  if (m && CAMPUS_MONTH_MAP[m[1]] !== undefined) return new Date(+m[3], CAMPUS_MONTH_MAP[m[1]], +m[2]);
   return null;
 }
-function samParseISODate(str) {
+function campusParseISODate(str) {
   if (!str) return null;
   var m = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
   return m ? new Date(+m[1], +m[2]-1, +m[3]) : null;
@@ -367,75 +367,75 @@ function samParseISODate(str) {
 // =============================================================
 // POPUP
 // =============================================================
-var samPopupEl        = document.getElementById('sam-popup');
-var samCurrentBookings = [];
+var campusPopupEl        = document.getElementById('campus-popup');
+var campusCurrentBookings = [];
 
-function samShowPopup(evt, idx) {
+function campusShowPopup(evt, idx) {
   evt.stopPropagation();
-  var b = samCurrentBookings[idx];
+  var b = campusCurrentBookings[idx];
   if (!b) return;
-  var start   = samParseTime12(b['Start Time']);
-  var end     = samParseTime12(b['End Time']);
-  var timeStr = samMinsToStr(start) + ' – ' + samMinsToStr(end);
+  var start   = campusParseTime12(b['Start Time']);
+  var end     = campusParseTime12(b['End Time']);
+  var timeStr = campusMinsToStr(start) + ' – ' + campusMinsToStr(end);
   var status  = b['Status - Event'] || '';
   var comment = (b['System Comment'] || '').trim();
-  var col     = samStatusColor(status);
-  samPopupEl.innerHTML =
+  var col     = campusStatusColor(status);
+  campusPopupEl.innerHTML =
     '<div style="height:4px;background:' + col.grad + ';border-radius:4px 4px 0 0;margin:-14px -16px 12px"></div>' +
-    '<h4>' + samEsc(b['Event Description'] || '—') + '</h4>' +
-    '<div class="sam-popup-time">' + timeStr + '</div>' +
-    (status  ? '<div><span class="sam-popup-status" style="background:' + col.solid + '">' + samEsc(status) + '</span></div>' : '') +
-    (comment ? '<div class="sam-popup-comment">' + samEsc(comment) + '</div>' : '') +
-    '<div class="sam-popup-row"><span>Account:</span> ' + samEsc(b['Account Name'] || '—') + '</div>' +
-    '<div class="sam-popup-row"><span>Contact:</span> ' + samEsc(b['Contact - Full Name'] || '—') + '</div>' +
-    '<div class="sam-popup-row"><span>Phone:</span> '   + samEsc(b['Contact - Phone'] || '—') + '</div>' +
-    '<div class="sam-popup-venue">' + samEsc(b['Venue'] || '') + '</div>';
-  samPopupEl.style.display = 'block';
+    '<h4>' + campusEsc(b['Event Description'] || '—') + '</h4>' +
+    '<div class="campus-popup-time">' + timeStr + '</div>' +
+    (status  ? '<div><span class="campus-popup-status" style="background:' + col.solid + '">' + campusEsc(status) + '</span></div>' : '') +
+    (comment ? '<div class="campus-popup-comment">' + campusEsc(comment) + '</div>' : '') +
+    '<div class="campus-popup-row"><span>Account:</span> ' + campusEsc(b['Account Name'] || '—') + '</div>' +
+    '<div class="campus-popup-row"><span>Contact:</span> ' + campusEsc(b['Contact - Full Name'] || '—') + '</div>' +
+    '<div class="campus-popup-row"><span>Phone:</span> '   + campusEsc(b['Contact - Phone'] || '—') + '</div>' +
+    '<div class="campus-popup-venue">' + campusEsc(b['Venue'] || '') + '</div>';
+  campusPopupEl.style.display = 'block';
   var x = evt.clientX + 14, y = evt.clientY + 14;
   if (x + 325 > window.innerWidth)  x = evt.clientX - 335;
   if (y + 240 > window.innerHeight) y = evt.clientY - 250;
-  samPopupEl.style.left = x + 'px';
-  samPopupEl.style.top  = y + 'px';
+  campusPopupEl.style.left = x + 'px';
+  campusPopupEl.style.top  = y + 'px';
 }
-function samHidePopup() { samPopupEl.style.display = 'none'; }
-document.addEventListener('click', samHidePopup);
+function campusHidePopup() { campusPopupEl.style.display = 'none'; }
+document.addEventListener('click', campusHidePopup);
 
 // =============================================================
 // TIMELINE
 // =============================================================
-var SAM_EMPTY_SVG =
+var CAMPUS_EMPTY_SVG =
   '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">' +
   '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>' +
   '<line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/>' +
   '</svg>';
 
-function samRenderTimeline(bookings) {
-  samCurrentBookings = bookings;
+function campusRenderTimeline(bookings) {
+  campusCurrentBookings = bookings;
   var totalMins = (TIMELINE_END_HR - TIMELINE_START_HR) * 60;
   var numHours  = TIMELINE_END_HR - TIMELINE_START_HR;
 
   // Hour header
-  var html = '<div class="sam-timeline"><div class="sam-timeline-header">';
+  var html = '<div class="campus-timeline"><div class="campus-timeline-header">';
   for (var h = TIMELINE_START_HR; h <= TIMELINE_END_HR; h++) {
     var lbl = h === 12 ? '12pm' : h < 12 ? h + 'am' : (h - 12) + 'pm';
-    html += '<div class="sam-timeline-hour">' + lbl + '</div>';
+    html += '<div class="campus-timeline-hour">' + lbl + '</div>';
   }
-  html += '</div><div class="sam-timeline-rows">';
+  html += '</div><div class="campus-timeline-rows">';
 
   // Grid lines
   var gridLines = '';
   for (var g = 1; g < numHours; g++) {
-    gridLines += '<div class="sam-timeline-gridline" style="left:' + (g / numHours * 100).toFixed(3) + '%"></div>';
+    gridLines += '<div class="campus-timeline-gridline" style="left:' + (g / numHours * 100).toFixed(3) + '%"></div>';
   }
 
   // "Now" line (only when viewing today)
   var nowLine = '';
   var nowDate = new Date();
-  if (samSameDay(samBookingsDate, nowDate)) {
+  if (campusSameDay(campusBookingsDate, nowDate)) {
     var nowMins = nowDate.getHours() * 60 + nowDate.getMinutes();
     if (nowMins >= TIMELINE_START_HR * 60 && nowMins <= TIMELINE_END_HR * 60) {
       var nowPct = (nowMins - TIMELINE_START_HR * 60) / totalMins * 100;
-      nowLine = '<div class="sam-timeline-nowline" style="left:' + nowPct.toFixed(2) + '%"></div>';
+      nowLine = '<div class="campus-timeline-nowline" style="left:' + nowPct.toFixed(2) + '%"></div>';
     }
   }
 
@@ -450,22 +450,22 @@ function samRenderTimeline(bookings) {
   });
 
   // Order venues by fixed list, unknown venues appended at end
-  var orderedVenues = SAM_VENUE_LIST.filter(function(v) { return venueMap[v]; });
+  var orderedVenues = CAMPUS_VENUE_LIST.filter(function(v) { return venueMap[v]; });
   Object.keys(venueMap).forEach(function(v) {
     if (orderedVenues.indexOf(v) === -1) orderedVenues.push(v);
   });
 
   if (!orderedVenues.length) {
-    return '<div class="sam-empty">' + SAM_EMPTY_SVG + '<p>No bookings for this date.</p></div>';
+    return '<div class="campus-empty">' + CAMPUS_EMPTY_SVG + '<p>No bookings for this date.</p></div>';
   }
 
   orderedVenues.forEach(function(venue) {
     var spaceMap = venueMap[venue];
 
     // Venue separator row
-    html += '<div class="sam-timeline-venue-hdr">' +
-            '<div class="sam-timeline-venue-lbl">' + samEsc(venue) + '</div>' +
-            '<div class="sam-timeline-venue-trk">' + gridLines + '</div>' +
+    html += '<div class="campus-timeline-venue-hdr">' +
+            '<div class="campus-timeline-venue-lbl">' + campusEsc(venue) + '</div>' +
+            '<div class="campus-timeline-venue-trk">' + gridLines + '</div>' +
             '</div>';
 
     // Space rows
@@ -474,30 +474,30 @@ function samRenderTimeline(bookings) {
       var blocks = '';
       spBookings.forEach(function(b) {
         var idx   = bookings.indexOf(b);
-        var start = samParseTime12(b['Start Time']);
-        var end   = samParseTime12(b['End Time']);
+        var start = campusParseTime12(b['Start Time']);
+        var end   = campusParseTime12(b['End Time']);
         if (start === null || end === null || end <= start) return;
         var leftPct  = Math.max(0, (start - TIMELINE_START_HR * 60) / totalMins * 100);
         var widthPct = Math.min(100 - leftPct, (end - start) / totalMins * 100);
         var desc    = b['Event Description'] || b['Account Name'] || '';
         var comment = (b['System Comment'] || '').trim();
-        var timeStr = samMinsToStr(start) + ' – ' + samMinsToStr(end);
-        var col     = samStatusColor(b['Status - Event']);
-        blocks += '<div class="sam-timeline-block"' +
+        var timeStr = campusMinsToStr(start) + ' – ' + campusMinsToStr(end);
+        var col     = campusStatusColor(b['Status - Event']);
+        blocks += '<div class="campus-timeline-block"' +
                   ' style="left:' + leftPct.toFixed(2) + '%;width:' + widthPct.toFixed(2) + '%;background:' + col.grad + '"' +
-                  ' onclick="samShowPopup(event,' + idx + ')">' +
-                  '<div class="sam-timeline-block-inner">' +
-                  '<div class="sam-timeline-block-title">' + samEsc(desc) + '</div>' +
-                  (comment ? '<div class="sam-timeline-block-comment">' + samEsc(comment) + '</div>' : '') +
-                  '<div class="sam-timeline-block-time">' + timeStr + '</div>' +
+                  ' onclick="campusShowPopup(event,' + idx + ')">' +
+                  '<div class="campus-timeline-block-inner">' +
+                  '<div class="campus-timeline-block-title">' + campusEsc(desc) + '</div>' +
+                  (comment ? '<div class="campus-timeline-block-comment">' + campusEsc(comment) + '</div>' : '') +
+                  '<div class="campus-timeline-block-time">' + timeStr + '</div>' +
                   '</div></div>';
       });
-      html += '<div class="sam-timeline-row">' +
-              '<div class="sam-timeline-label">' +
-              '<span class="sam-space-name">' + samEsc(space) + '</span>' +
-              '<span class="sam-count-badge">' + spBookings.length + '</span>' +
+      html += '<div class="campus-timeline-row">' +
+              '<div class="campus-timeline-label">' +
+              '<span class="campus-space-name">' + campusEsc(space) + '</span>' +
+              '<span class="campus-count-badge">' + spBookings.length + '</span>' +
               '</div>' +
-              '<div class="sam-timeline-track">' + gridLines + nowLine + blocks + '</div>' +
+              '<div class="campus-timeline-track">' + gridLines + nowLine + blocks + '</div>' +
               '</div>';
     });
   });
@@ -509,34 +509,34 @@ function samRenderTimeline(bookings) {
 // =============================================================
 // VENUE FILTER (hardcoded list)
 // =============================================================
-function samBuildVenueFilter() {
-  var el = document.getElementById('sam-venue-filter');
-  el.innerHTML = '<span class="sam-venue-filter-label">Venue:</span>' +
-    '<button class="sam-venue-btn active" onclick="samSetVenue(\'\')">All</button>' +
-    SAM_VENUE_LIST.map(function(v) {
-      return '<button class="sam-venue-btn" onclick="samSetVenue(\'' + v.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">' + samEsc(v) + '</button>';
+function campusBuildVenueFilter() {
+  var el = document.getElementById('campus-venue-filter');
+  el.innerHTML = '<span class="campus-venue-filter-label">Venue:</span>' +
+    '<button class="campus-venue-btn active" onclick="campusSetVenue(\'\')">All</button>' +
+    CAMPUS_VENUE_LIST.map(function(v) {
+      return '<button class="campus-venue-btn" onclick="campusSetVenue(\'' + v.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">' + campusEsc(v) + '</button>';
     }).join('');
 }
-function samSetVenue(v) {
-  samBookingsVenue = v;
-  samHidePopup();
-  var btns = document.querySelectorAll('#sam-venue-filter .sam-venue-btn');
+function campusSetVenue(v) {
+  campusBookingsVenue = v;
+  campusHidePopup();
+  var btns = document.querySelectorAll('#campus-venue-filter .campus-venue-btn');
   btns.forEach(function(b) { b.classList.toggle('active', b.textContent.trim() === (v || 'All')); });
-  samRenderBookings();
+  campusRenderBookings();
 }
 
 // =============================================================
 // STATUS LEGEND
 // =============================================================
-function samBuildStatusLegend() {
-  var el = document.getElementById('sam-status-legend');
-  var seen = {}, html = '<span class="sam-legend-label">Status:</span>';
-  SAM_STATUS_COLORS.forEach(function(c) {
+function campusBuildStatusLegend() {
+  var el = document.getElementById('campus-status-legend');
+  var seen = {}, html = '<span class="campus-legend-label">Status:</span>';
+  CAMPUS_STATUS_COLORS.forEach(function(c) {
     if (c.label && !seen[c.label]) {
       seen[c.label] = true;
-      html += '<span class="sam-legend-item">' +
-              '<span class="sam-legend-dot" style="background:' + c.solid + '"></span>' +
-              samEsc(c.label) + '</span>';
+      html += '<span class="campus-legend-item">' +
+              '<span class="campus-legend-dot" style="background:' + c.solid + '"></span>' +
+              campusEsc(c.label) + '</span>';
     }
   });
   el.innerHTML = html;
@@ -545,56 +545,56 @@ function samBuildStatusLegend() {
 // =============================================================
 // BOOKINGS RENDER
 // =============================================================
-function samRenderBookings() {
-  document.getElementById('sam-label-bookings').textContent = samFmtDate(samBookingsDate);
-  samRenderWeekStrip('bookings');
-  var filtered = samAllBookings.filter(function(r) {
-    var d = samParseBookingDate(r['Date']);
-    if (!d || !samSameDay(d, samBookingsDate)) return false;
+function campusRenderBookings() {
+  document.getElementById('campus-label-bookings').textContent = campusFmtDate(campusBookingsDate);
+  campusRenderWeekStrip('bookings');
+  var filtered = campusAllBookings.filter(function(r) {
+    var d = campusParseBookingDate(r['Date']);
+    if (!d || !campusSameDay(d, campusBookingsDate)) return false;
     if (/cancelled/i.test(r['Status - Event'] || '')) return false;
-    if (samBookingsVenue && (r['Venue'] || '').trim() !== samBookingsVenue) return false;
+    if (campusBookingsVenue && (r['Venue'] || '').trim() !== campusBookingsVenue) return false;
     return true;
   });
-  filtered.sort(function(a, b) { return (samParseTime12(a['Start Time'])||0) - (samParseTime12(b['Start Time'])||0); });
-  var el = document.getElementById('sam-bookings');
+  filtered.sort(function(a, b) { return (campusParseTime12(a['Start Time'])||0) - (campusParseTime12(b['Start Time'])||0); });
+  var el = document.getElementById('campus-bookings');
   if (!filtered.length) {
-    el.innerHTML = '<div class="sam-empty">' + SAM_EMPTY_SVG + '<p>No bookings for this date.</p></div>';
+    el.innerHTML = '<div class="campus-empty">' + CAMPUS_EMPTY_SVG + '<p>No bookings for this date.</p></div>';
     return;
   }
-  el.innerHTML = samRenderTimeline(filtered);
+  el.innerHTML = campusRenderTimeline(filtered);
 }
 
 // =============================================================
 // FUNCTIONS RENDER
 // =============================================================
-var SAM_FN_COLS = [
+var CAMPUS_FN_COLS = [
   { label: 'Event',   key: 'Event Name' },
   { label: 'Space',   key: 'Space Description' },
-  { label: 'Start',   get: function(r) { return samMinsToStr(samParseTimeISO(r['Start Time'])); } },
-  { label: 'End',     get: function(r) { return samMinsToStr(samParseTimeISO(r['End Time'])); } },
+  { label: 'Start',   get: function(r) { return campusMinsToStr(campusParseTimeISO(r['Start Time'])); } },
+  { label: 'End',     get: function(r) { return campusMinsToStr(campusParseTimeISO(r['End Time'])); } },
   { label: 'Ordered', key: 'Ordered Attendance' },
   { label: 'Actual',  key: 'Actual Attendance' }
 ];
 
-function samRenderFunctions() {
-  document.getElementById('sam-label-functions').textContent = samFmtDate(samFunctionsDate);
-  samRenderWeekStrip('functions');
-  var filtered = samAllFunctions.filter(function(r) {
-    var d = samParseISODate(r['Start Date']);
-    return d && samSameDay(d, samFunctionsDate);
+function campusRenderFunctions() {
+  document.getElementById('campus-label-functions').textContent = campusFmtDate(campusFunctionsDate);
+  campusRenderWeekStrip('functions');
+  var filtered = campusAllFunctions.filter(function(r) {
+    var d = campusParseISODate(r['Start Date']);
+    return d && campusSameDay(d, campusFunctionsDate);
   });
-  filtered.sort(function(a,b) { return (samParseTimeISO(a['Start Time'])||0) - (samParseTimeISO(b['Start Time'])||0); });
-  var el = document.getElementById('sam-functions');
+  filtered.sort(function(a,b) { return (campusParseTimeISO(a['Start Time'])||0) - (campusParseTimeISO(b['Start Time'])||0); });
+  var el = document.getElementById('campus-functions');
   if (!filtered.length) {
-    el.innerHTML = '<div class="sam-empty">' + SAM_EMPTY_SVG + '<p>No functions for this date.</p></div>';
+    el.innerHTML = '<div class="campus-empty">' + CAMPUS_EMPTY_SVG + '<p>No functions for this date.</p></div>';
     return;
   }
-  var html = '<table class="sam-table"><thead><tr>';
-  SAM_FN_COLS.forEach(function(c) { html += '<th>' + c.label + '</th>'; });
+  var html = '<table class="campus-table"><thead><tr>';
+  CAMPUS_FN_COLS.forEach(function(c) { html += '<th>' + c.label + '</th>'; });
   html += '</tr></thead><tbody>';
   filtered.forEach(function(r) {
     html += '<tr>';
-    SAM_FN_COLS.forEach(function(c) { html += '<td>' + samEsc(c.get ? c.get(r) : (r[c.key] || '')) + '</td>'; });
+    CAMPUS_FN_COLS.forEach(function(c) { html += '<td>' + campusEsc(c.get ? c.get(r) : (r[c.key] || '')) + '</td>'; });
     html += '</tr>';
   });
   html += '</tbody></table>';
@@ -604,7 +604,7 @@ function samRenderFunctions() {
 // =============================================================
 // CSV PARSER
 // =============================================================
-function samParseCSV(text) {
+function campusParseCSV(text) {
   var rows = [];
   text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').forEach(function(line) {
     if (!line.trim()) return;
@@ -619,7 +619,7 @@ function samParseCSV(text) {
   });
   return rows;
 }
-function samCSVtoObj(rows) {
+function campusCSVtoObj(rows) {
   if (rows.length < 2) return [];
   var h = rows[0];
   return rows.slice(1).map(function(r) { var o = {}; h.forEach(function(k,i) { o[k] = (r[i]||'').trim(); }); return o; });
@@ -628,31 +628,31 @@ function samCSVtoObj(rows) {
 // =============================================================
 // INIT
 // =============================================================
-samBuildVenueFilter();
-samBuildStatusLegend();
+campusBuildVenueFilter();
+campusBuildStatusLegend();
 // Set date labels and week strips immediately (data loads async)
-document.getElementById('sam-label-bookings').textContent  = samFmtDate(samBookingsDate);
-document.getElementById('sam-label-functions').textContent = samFmtDate(samFunctionsDate);
-samRenderWeekStrip('bookings');
-samRenderWeekStrip('functions');
+document.getElementById('campus-label-bookings').textContent  = campusFmtDate(campusBookingsDate);
+document.getElementById('campus-label-functions').textContent = campusFmtDate(campusFunctionsDate);
+campusRenderWeekStrip('bookings');
+campusRenderWeekStrip('functions');
 
 // Load bookings
-fetch(SAM_BOOKINGS_URL)
+fetch(CAMPUS_BOOKINGS_URL)
   .then(function(r) { return r.json(); })
-  .then(function(data) { samAllBookings = data; samRenderBookings(); })
-  .catch(function(err) { document.getElementById('sam-bookings').innerHTML = '<p class="sam-error">Could not load bookings: ' + err.message + '</p>'; });
+  .then(function(data) { campusAllBookings = data; campusRenderBookings(); })
+  .catch(function(err) { document.getElementById('campus-bookings').innerHTML = '<p class="campus-error">Could not load bookings: ' + err.message + '</p>'; });
 
 // Load functions (Apps Script if configured, else CSV via proxy)
-var samFnEl = document.getElementById('sam-functions');
-if (SAM_FUNCTIONS_URL) {
-  fetch(SAM_FUNCTIONS_URL)
+var campusFnEl = document.getElementById('campus-functions');
+if (CAMPUS_FUNCTIONS_URL) {
+  fetch(CAMPUS_FUNCTIONS_URL)
     .then(function(r) { return r.json(); })
-    .then(function(data) { samAllFunctions = data; samRenderFunctions(); })
-    .catch(function(err) { samFnEl.innerHTML = '<p class="sam-error">Could not load functions: ' + err.message + '</p>'; });
+    .then(function(data) { campusAllFunctions = data; campusRenderFunctions(); })
+    .catch(function(err) { campusFnEl.innerHTML = '<p class="campus-error">Could not load functions: ' + err.message + '</p>'; });
 } else {
-  fetch('https://corsproxy.io/?' + encodeURIComponent(SAM_FUNCTIONS_CSV))
+  fetch('https://corsproxy.io/?' + encodeURIComponent(CAMPUS_FUNCTIONS_CSV))
     .then(function(r) { return r.text(); })
-    .then(function(text) { samAllFunctions = samCSVtoObj(samParseCSV(text)); samRenderFunctions(); })
-    .catch(function(err) { samFnEl.innerHTML = '<p class="sam-error">Could not load functions: ' + err.message + '</p>'; });
+    .then(function(text) { campusAllFunctions = campusCSVtoObj(campusParseCSV(text)); campusRenderFunctions(); })
+    .catch(function(err) { campusFnEl.innerHTML = '<p class="campus-error">Could not load functions: ' + err.message + '</p>'; });
 }
 </script>
