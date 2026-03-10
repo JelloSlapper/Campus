@@ -350,6 +350,7 @@
 
   <!-- Month View tab -->
   <div id="campus-tab-month" style="display:none">
+    <div id="campus-venue-filter-month" class="campus-venue-filter"></div>
     <div id="campus-month-view"></div>
   </div>
 
@@ -377,6 +378,7 @@
       <button class="campus-today-btn" onclick="campusGoToday('functions')">Today</button>
       <span id="campus-summary-functions" class="campus-day-summary" style="display:none"></span>
     </div>
+    <div id="campus-venue-filter-functions" class="campus-venue-filter"></div>
     <div id="campus-functions"></div>
   </div>
 
@@ -431,8 +433,10 @@ var campusAllFunctions  = [];
 var campusBookingsDate  = campusToday();
 var campusFunctionsDate = campusToday();
 var campusCardsDate     = campusToday();
-var campusBookingsVenue = '';
-var campusMonthYear     = new Date().getFullYear();
+var campusBookingsVenue   = '';
+var campusFunctionsVenue  = '';
+var campusMonthVenue      = '';
+var campusMonthYear       = new Date().getFullYear();
 var campusMonthMonth    = new Date().getMonth();
 
 function campusToday() { var d = new Date(); d.setHours(0,0,0,0); return d; }
@@ -455,19 +459,23 @@ function campusSameDay(a, b) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
-// Busyness stats for a date (bookings count + planned attendance)
-function campusGetDayStats(date) {
-  var count = 0, attendance = 0;
+// Busyness stats for a date (bookings count + planned attendance + unique events)
+// Optional venue param restricts to a single venue.
+function campusGetDayStats(date, venue) {
+  var count = 0, attendance = 0, eventSet = {};
   for (var i = 0; i < campusAllBookings.length; i++) {
     var b = campusAllBookings[i];
     var d = campusParseBookingDate(b['Date']);
     if (!d || !campusSameDay(d, date)) continue;
     if (/cancelled/i.test(b['Status - Event'] || '')) continue;
+    if (venue && (b['Venue'] || '').trim() !== venue) continue;
     count++;
     var att = parseInt(b['Planned Attendance'] || '0', 10);
     if (!isNaN(att)) attendance += att;
+    var evtName = (b['Event Description'] || b['Account Name'] || '').trim();
+    if (evtName) eventSet[evtName] = true;
   }
-  return { count: count, attendance: attendance };
+  return { count: count, attendance: attendance, events: Object.keys(eventSet).length };
 }
 // Dot colour + count for busyness indicator
 function campusBusynessStyle(count, attendance) {
@@ -1048,6 +1056,40 @@ function campusSetVenue(v) {
   campusRenderBookings();
 }
 
+function campusBuildFunctionsVenueFilter() {
+  var el = document.getElementById('campus-venue-filter-functions');
+  el.innerHTML = '<span class="campus-venue-filter-label">Venue:</span>' +
+    '<button class="campus-venue-btn active" onclick="campusSetFunctionsVenue(\'\')">All</button>' +
+    CAMPUS_VENUE_LIST.map(function(v) {
+      return '<button class="campus-venue-btn" onclick="campusSetFunctionsVenue(\'' + v.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">' + campusEsc(v) + '</button>';
+    }).join('');
+}
+function campusSetFunctionsVenue(v) {
+  campusFunctionsVenue = v;
+  campusHideHover();
+  document.querySelectorAll('#campus-venue-filter-functions .campus-venue-btn').forEach(function(b) {
+    b.classList.toggle('active', b.textContent.trim() === (v || 'All'));
+  });
+  campusRenderFunctions();
+}
+
+function campusBuildMonthVenueFilter() {
+  var el = document.getElementById('campus-venue-filter-month');
+  el.innerHTML = '<span class="campus-venue-filter-label">Venue:</span>' +
+    '<button class="campus-venue-btn active" onclick="campusSetMonthVenue(\'\')">All</button>' +
+    CAMPUS_VENUE_LIST.map(function(v) {
+      return '<button class="campus-venue-btn" onclick="campusSetMonthVenue(\'' + v.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">' + campusEsc(v) + '</button>';
+    }).join('');
+}
+function campusSetMonthVenue(v) {
+  campusMonthVenue = v;
+  campusHideHover();
+  document.querySelectorAll('#campus-venue-filter-month .campus-venue-btn').forEach(function(b) {
+    b.classList.toggle('active', b.textContent.trim() === (v || 'All'));
+  });
+  campusRenderMonthView();
+}
+
 // =============================================================
 // STATUS LEGEND
 // =============================================================
@@ -1125,7 +1167,9 @@ function campusRenderFunctions() {
     var filtered = campusAllFunctions.filter(function(r) {
       var d = campusParseISODate(r['Start Date']);
       if (!d || !campusSameDay(d, campusFunctionsDate)) return false;
-      return (r['Space Description'] || '').trim() !== '';
+      if ((r['Space Description'] || '').trim() === '') return false;
+      if (campusFunctionsVenue && (r['Venue'] || '').trim() !== campusFunctionsVenue) return false;
+      return true;
     });
     filtered.sort(function(a,b) { return (campusParseTimeISO(a['Start Time'])||0) - (campusParseTimeISO(b['Start Time'])||0); });
 
@@ -1247,7 +1291,7 @@ function campusRenderMonthView() {
     var isToday  = campusSameDay(date, today);
     var isActive = campusSameDay(date, campusBookingsDate);
     var cls      = 'campus-month-day' + (isToday ? ' today' : '') + (isActive ? ' active' : '');
-    var stats    = campusGetDayStats(date);
+    var stats    = campusGetDayStats(date, campusMonthVenue);
     var busy     = campusBusynessStyle(stats.count, stats.attendance);
     var statsHtml = '';
     if (stats.count > 0) {
@@ -1255,15 +1299,47 @@ function campusRenderMonthView() {
       statsHtml = '<div class="campus-month-day-stats">' +
         '<div><span class="campus-month-busy-dot" style="background:' + dotColor + '"></span>' +
         stats.count + ' booking' + (stats.count !== 1 ? 's' : '') + '</div>' +
+        (stats.events > 0 ? '<div style="padding-left:10px;font-size:0.6rem;opacity:0.8">' + stats.events + ' event' + (stats.events !== 1 ? 's' : '') + '</div>' : '') +
         (stats.attendance > 0 ? '<div style="padding-left:10px;font-size:0.6rem;opacity:0.8">' + stats.attendance.toLocaleString() + ' guests</div>' : '') +
         '</div>';
     }
-    html += '<div class="' + cls + '" onclick="campusGoDateMonth(' + campusMonthYear + ',' + campusMonthMonth + ',' + d + ')">' +
+    html += '<div class="' + cls + '"' +
+            ' onclick="campusGoDateMonth(' + campusMonthYear + ',' + campusMonthMonth + ',' + d + ')"' +
+            ' onmouseenter="campusMonthDayHover(event,' + campusMonthYear + ',' + campusMonthMonth + ',' + d + ')"' +
+            ' onmousemove="campusMoveHover(event)"' +
+            ' onmouseleave="campusHideHover()">' +
             '<div class="campus-month-day-num">' + d + '</div>' + statsHtml + '</div>';
   }
   html += '</div>';
   el.innerHTML = html;
 }
+function campusMonthDayHover(evt, y, m, d) {
+  var date = new Date(y, m, d);
+  var eventMap = {};
+  campusAllBookings.forEach(function(b) {
+    var bd = campusParseBookingDate(b['Date']);
+    if (!bd || !campusSameDay(bd, date)) return;
+    if (/cancelled/i.test(b['Status - Event'] || '')) return;
+    if (campusMonthVenue && (b['Venue'] || '').trim() !== campusMonthVenue) return;
+    var name = (b['Event Description'] || b['Account Name'] || 'Unknown').trim();
+    if (!eventMap[name]) eventMap[name] = b['Status - Event'] || '';
+  });
+  var names = Object.keys(eventMap);
+  if (!names.length) return;
+  var html = names.map(function(name) {
+    var col = campusStatusColor(eventMap[name]);
+    return '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px">' +
+           '<span style="font-size:0.74rem;font-weight:600;line-height:1.3">' + campusEsc(name) + '</span>' +
+           (eventMap[name]
+             ? '<span style="flex-shrink:0;background:' + col.solid + ';color:#fff;border-radius:8px;padding:1px 7px;font-size:0.62rem;font-weight:600">' + campusEsc(eventMap[name]) + '</span>'
+             : '') +
+           '</div>';
+  }).join('');
+  campusHoverTipEl.innerHTML = html;
+  campusHoverTipEl.style.display = 'block';
+  campusPositionHover(evt);
+}
+
 function campusNavMonthView(delta) {
   campusMonthMonth += delta;
   if (campusMonthMonth > 11) { campusMonthMonth = 0; campusMonthYear++; }
@@ -1330,7 +1406,8 @@ function campusRenderCards() {
       data.bookings.sort(function(a, b) {
         return (campusParseTime12(a['Start Time']) || 0) - (campusParseTime12(b['Start Time']) || 0);
       });
-      html += '<div class="campus-card">' +
+      var cardCol = campusStatusColor(data.bookings[0]['Status - Event']);
+      html += '<div class="campus-card" style="border-left:4px solid ' + cardCol.solid + '">' +
               '<div class="campus-card-hdr"><div class="campus-card-org">' + campusEsc(evt) + '</div></div>' +
               '<div class="campus-card-body">';
       data.bookings.forEach(function(b) {
@@ -1386,6 +1463,8 @@ function campusCSVtoObj(rows) {
 // INIT
 // =============================================================
 campusBuildVenueFilter();
+campusBuildFunctionsVenueFilter();
+campusBuildMonthVenueFilter();
 campusBuildStatusLegend();
 
 // Set labels, week strips, and skeleton immediately — data loads async
