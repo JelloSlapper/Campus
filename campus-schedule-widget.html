@@ -109,6 +109,7 @@
   .campus-timeline-row--tall { min-height: 74px; }
   .campus-timeline-row:last-child { border-bottom: none; }
   .campus-timeline-row:nth-child(even) { background: #fafafa; }
+  .campus-timeline-rows > div:nth-child(even) > .campus-timeline-row { background: #fafafa; }
   .campus-timeline-label {
     width: 190px; min-width: 190px; font-size: 0.77rem;
     padding: 0 12px; display: flex; align-items: center; font-weight: 500;
@@ -135,12 +136,13 @@
   .campus-timeline-block {
     position: absolute; top: 7px; bottom: 7px;
     border-radius: 4px; overflow: hidden; cursor: pointer; min-width: 4px;
+    border: 2px solid rgba(255,255,255,0.55);
     box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-    transition: filter 0.15s, box-shadow 0.15s;
+    transition: filter 0.15s, box-shadow 0.15s, opacity 0.15s;
   }
   .campus-timeline-block:hover {
     filter: brightness(1.1);
-    box-shadow: 0 3px 10px rgba(0,0,0,0.28);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.32);
     z-index: 10;
   }
   .campus-timeline-block-inner   { padding: 4px 7px; line-height: 1.3; }
@@ -250,7 +252,7 @@
   .campus-month-busy-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 3px; vertical-align: middle; }
 
   /* --- Events (cards) tab --- */
-  .campus-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1rem; }
+  .campus-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1rem; align-items: start; }
   .campus-card { border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; flex-direction: column; }
   .campus-card-hdr { padding: 11px 14px 10px; background: #222; color: #fff; }
   .campus-card-org { font-size: 0.9rem; font-weight: 700; line-height: 1.3; }
@@ -263,6 +265,37 @@
   .campus-card-time { font-size: 0.76rem; color: #555; white-space: nowrap; flex-shrink: 0; padding-top: 2px; }
   .campus-card-footer { padding: 8px 14px; background: #f8f8f8; border-top: 1px solid #eee; font-size: 0.78rem; color: #555; display: flex; flex-wrap: wrap; gap: 3px 16px; align-items: center; }
   .campus-card-contact-name { font-weight: 600; color: #333; }
+
+  /* --- Timeline block expand button --- */
+  .campus-fn-expand-btn {
+    position: absolute; top: 3px; right: 4px;
+    min-width: 18px; height: 16px; border-radius: 8px;
+    background: rgba(255,255,255,0.25); color: #fff;
+    border: 1px solid rgba(255,255,255,0.5);
+    font-size: 0.68rem; font-weight: 700; line-height: 16px;
+    cursor: pointer; font-family: inherit; padding: 0 4px;
+    white-space: nowrap; z-index: 2; transition: background 0.15s;
+  }
+  .campus-fn-expand-btn:hover { background: rgba(255,255,255,0.45); }
+
+  /* --- Function expansion sub-timeline --- */
+  .campus-fn-expand { border-top: 2px solid #5b6abf; background: #f3f5fd; }
+  .campus-fn-expand-hdr {
+    padding: 4px 12px 4px 202px;
+    font-size: 0.64rem; font-weight: 700; color: #5b6abf;
+    text-transform: uppercase; letter-spacing: 0.07em;
+    background: rgba(91,106,191,0.07); border-bottom: 1px solid #dce4f0;
+  }
+  .campus-fn-expand-sub-row { display: flex; min-height: 40px; border-bottom: 1px solid #e4e8f4; align-items: stretch; }
+  .campus-fn-expand-sub-row:last-child { border-bottom: none; }
+  .campus-fn-expand-sub-lbl {
+    width: 190px; min-width: 190px; font-size: 0.71rem; color: #3d4da8; font-weight: 500;
+    padding: 0 12px 0 20px; display: flex; align-items: center;
+    border-right: 1px solid #dce4f0; background: rgba(61,77,168,0.04);
+    overflow: hidden;
+  }
+  .campus-fn-expand-sub-lbl span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .campus-fn-expand-sub-trk { flex: 1; position: relative; min-height: 40px; }
 
   /* --- States --- */
   .campus-empty { text-align: center; padding: 3rem 1rem; }
@@ -317,6 +350,7 @@
 
   <!-- Month View tab -->
   <div id="campus-tab-month" style="display:none">
+    <div id="campus-venue-filter-month" class="campus-venue-filter"></div>
     <div id="campus-month-view"></div>
   </div>
 
@@ -344,6 +378,7 @@
       <button class="campus-today-btn" onclick="campusGoToday('functions')">Today</button>
       <span id="campus-summary-functions" class="campus-day-summary" style="display:none"></span>
     </div>
+    <div id="campus-venue-filter-functions" class="campus-venue-filter"></div>
     <div id="campus-functions"></div>
   </div>
 
@@ -398,8 +433,10 @@ var campusAllFunctions  = [];
 var campusBookingsDate  = campusToday();
 var campusFunctionsDate = campusToday();
 var campusCardsDate     = campusToday();
-var campusBookingsVenue = '';
-var campusMonthYear     = new Date().getFullYear();
+var campusBookingsVenue   = '';
+var campusFunctionsVenue  = '';
+var campusMonthVenue      = '';
+var campusMonthYear       = new Date().getFullYear();
 var campusMonthMonth    = new Date().getMonth();
 
 function campusToday() { var d = new Date(); d.setHours(0,0,0,0); return d; }
@@ -422,19 +459,23 @@ function campusSameDay(a, b) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
-// Busyness stats for a date (bookings count + planned attendance)
-function campusGetDayStats(date) {
-  var count = 0, attendance = 0;
+// Busyness stats for a date (bookings count + planned attendance + unique events)
+// Optional venue param restricts to a single venue.
+function campusGetDayStats(date, venue) {
+  var count = 0, attendance = 0, eventSet = {};
   for (var i = 0; i < campusAllBookings.length; i++) {
     var b = campusAllBookings[i];
     var d = campusParseBookingDate(b['Date']);
     if (!d || !campusSameDay(d, date)) continue;
     if (/cancelled/i.test(b['Status - Event'] || '')) continue;
+    if (venue && (b['Venue'] || '').trim() !== venue) continue;
     count++;
     var att = parseInt(b['Planned Attendance'] || '0', 10);
     if (!isNaN(att)) attendance += att;
+    var evtName = (b['Event Description'] || b['Account Name'] || '').trim();
+    if (evtName) eventSet[evtName] = true;
   }
-  return { count: count, attendance: attendance };
+  return { count: count, attendance: attendance, events: Object.keys(eventSet).length };
 }
 // Dot colour + count for busyness indicator
 function campusBusynessStyle(count, attendance) {
@@ -649,6 +690,32 @@ function campusShowHover(evt, idx) {
 }
 function campusMoveHover(evt)  { campusPositionHover(evt); }
 function campusHideHover()     { campusHoverTipEl.style.display = 'none'; }
+
+// Rich hover card for function blocks (reads data-fn-* attributes)
+function campusFnShowHover(evt, el) {
+  var name    = el.getAttribute('data-fn-name')    || '\u2014';
+  var space   = el.getAttribute('data-fn-space')   || '';
+  var venue   = el.getAttribute('data-fn-venue')   || '';
+  var start   = el.getAttribute('data-fn-start')   || '';
+  var end     = el.getAttribute('data-fn-end')     || '';
+  var ordered = el.getAttribute('data-fn-ordered') || '';
+  var actual  = el.getAttribute('data-fn-actual')  || '';
+  var timeStr = (start && end) ? start + ' \u2013 ' + end : (start || end);
+  campusHoverTipEl.innerHTML =
+    '<div style="font-weight:700;margin-bottom:4px;font-size:0.79rem">' + campusEsc(name) + '</div>' +
+    (timeStr ? '<div style="opacity:0.8;font-size:0.71rem;margin-bottom:5px">' + campusEsc(timeStr) + '</div>' : '') +
+    (space   ? '<div style="font-size:0.71rem;margin-bottom:2px"><span style="opacity:0.55">Space: </span>' + campusEsc(space) + '</div>' : '') +
+    (venue   ? '<div style="font-size:0.71rem;margin-bottom:2px"><span style="opacity:0.55">Venue: </span>' + campusEsc(venue) + '</div>' : '') +
+    ((ordered || actual) ?
+      '<div style="font-size:0.71rem;margin-top:6px;padding-top:5px;border-top:1px solid rgba(255,255,255,0.18)">' +
+      (ordered ? '<span style="opacity:0.55">Ordered: </span>' + campusEsc(ordered) : '') +
+      (ordered && actual ? '&nbsp;&nbsp;' : '') +
+      (actual  ? '<span style="opacity:0.55">Actual: </span>'  + campusEsc(actual) : '') +
+      '</div>' : '');
+  campusHoverTipEl.style.display = 'block';
+  campusPositionHover(evt);
+}
+
 function campusPositionHover(evt) {
   var x = evt.clientX + 14, y = evt.clientY - 62;
   if (x + 230 > window.innerWidth)  x = evt.clientX - 240;
@@ -692,6 +759,33 @@ function campusShowPopup(evt, idx) {
   campusPopupEl.style.top  = y + 'px';
 }
 function campusHidePopup() { campusPopupEl.style.display = 'none'; }
+
+// =============================================================
+// FUNCTIONS ↔ BOOKINGS LINK
+// =============================================================
+// Returns functions whose Space Description + date match a booking
+function campusFnsForBooking(b) {
+  var space = (b['Space'] || '').trim();
+  var bookingDate = campusParseBookingDate(b['Date']);
+  if (!space || !bookingDate) return [];
+  return campusAllFunctions.filter(function(fn) {
+    if ((fn['Space Description'] || '').trim() !== space) return false;
+    var fnDate = campusParseISODate(fn['Start Date']);
+    return fnDate && campusSameDay(fnDate, bookingDate);
+  });
+}
+
+function campusToggleFnExpand(evt, idx) {
+  evt.stopPropagation();
+  campusHideHover();
+  campusHidePopup();
+  var panel = document.getElementById('campus-fn-expand-' + idx);
+  var btn   = document.getElementById('campus-fn-btn-' + idx);
+  if (!panel) return;
+  var open = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : '';
+  if (btn) btn.textContent = open ? '+' : '\u2212';
+}
 
 document.addEventListener('click', function() {
   campusHidePopup();
@@ -749,6 +843,30 @@ function campusFadeRender(elId, renderFn) {
 // =============================================================
 // TIMELINE
 // =============================================================
+// Assigns each booking a stack depth (0 = back, 1 = one in front, …) using
+// first-fit lane assignment so non-overlapping bookings can share a depth.
+function campusStackDepths(spBookings) {
+  var n = spBookings.length;
+  var times = spBookings.map(function(b) {
+    return { s: campusParseTime12(b['Start Time']), e: campusParseTime12(b['End Time']) };
+  });
+  var depths = [];
+  for (var i = 0; i < n; i++) {
+    var ti = times[i];
+    if (ti.s === null || ti.e === null || ti.e <= ti.s) { depths.push(0); continue; }
+    var used = {};
+    for (var j = 0; j < i; j++) {
+      var tj = times[j];
+      if (tj.s === null || tj.e === null) continue;
+      if (Math.max(ti.s, tj.s) < Math.min(ti.e, tj.e)) used[depths[j]] = true;
+    }
+    var d = 0;
+    while (used[d]) d++;
+    depths.push(d);
+  }
+  return depths;
+}
+
 var CAMPUS_EMPTY_SVG =
   '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5">' +
   '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>' +
@@ -827,10 +945,14 @@ function campusRenderTimeline(bookings) {
 
     spaces.forEach(function(space) {
       var spBookings = spaceMap[space];
-      // Taller row if any booking in this row has a comment (3 lines of text)
       var hasComment = spBookings.some(function(b) { return (b['System Comment'] || '').trim(); });
-      var blocks = '';
-      spBookings.forEach(function(b) {
+      var depths   = campusStackDepths(spBookings);
+      var maxDepth = depths.reduce(function(m, d) { return Math.max(m, d); }, 0);
+      var rowMinH  = (hasComment ? 74 : 56) + maxDepth * 22;
+      var blocks = '', expandPanels = '';
+      spBookings.forEach(function(b, bi) {
+        var depth = depths[bi];
+        var topPx = 7 + depth * 22;
         var idx   = bookings.indexOf(b);
         var start = campusParseTime12(b['Start Time']);
         var end   = campusParseTime12(b['End Time']);
@@ -841,8 +963,21 @@ function campusRenderTimeline(bookings) {
         var comment = (b['System Comment'] || '').trim();
         var timeStr = campusMinsToStr(start) + ' \u2013 ' + campusMinsToStr(end);
         var col     = campusStatusColor(b['Status - Event']);
+        // Only include functions whose time overlaps this booking
+        var matchedFns = campusFnsForBooking(b).filter(function(fn) {
+          var fs = campusParseTimeISO(fn['Start Time']);
+          var fe = campusParseTimeISO(fn['End Time']);
+          return fs !== null && fe !== null && Math.max(start, fs) < Math.min(end, fe);
+        });
+        var expandBtn = matchedFns.length > 0
+          ? '<button id="campus-fn-btn-' + idx + '" class="campus-fn-expand-btn" onclick="campusToggleFnExpand(event,' + idx + ')" title="Show ' + matchedFns.length + ' function' + (matchedFns.length !== 1 ? 's' : '') + '">+' + matchedFns.length + '</button>'
+          : '';
+        var stackShadow = depth === 0
+          ? '0 1px 4px rgba(0,0,0,0.22)'
+          : '0 ' + (3 + depth * 3) + 'px ' + (8 + depth * 4) + 'px rgba(0,0,0,' + (0.28 + depth * 0.06).toFixed(2) + ')';
+        var stackOpacity = depth === 0 ? '0.88' : '1';
         blocks += '<div class="campus-timeline-block"' +
-                  ' style="left:' + leftPct.toFixed(2) + '%;width:' + widthPct.toFixed(2) + '%;background:' + col.grad + '"' +
+                  ' style="left:' + leftPct.toFixed(2) + '%;width:' + widthPct.toFixed(2) + '%;top:' + topPx + 'px;bottom:7px;z-index:' + (depth + 1) + ';opacity:' + stackOpacity + ';box-shadow:' + stackShadow + ';background:' + col.grad + '"' +
                   ' onclick="campusShowPopup(event,' + idx + ')"' +
                   ' onmouseenter="campusShowHover(event,' + idx + ')"' +
                   ' onmousemove="campusMoveHover(event)"' +
@@ -851,13 +986,49 @@ function campusRenderTimeline(bookings) {
                   '<div class="campus-timeline-block-title">' + campusEsc(desc) + '</div>' +
                   (comment ? '<div class="campus-timeline-block-comment">' + campusEsc(comment) + '</div>' : '') +
                   '<div class="campus-timeline-block-time">' + timeStr + '</div>' +
-                  '</div></div>';
+                  '</div>' + expandBtn + '</div>';
+        if (matchedFns.length > 0) {
+          var subRows = matchedFns.map(function(fn) {
+            var fs = campusParseTimeISO(fn['Start Time']);
+            var fe = campusParseTimeISO(fn['End Time']);
+            var fLeft    = Math.max(0, (fs - TIMELINE_START_HR * 60) / totalMins * 100);
+            var fWidth   = Math.min(100 - fLeft, (fe - fs) / totalMins * 100);
+            var fname    = fn['Event Name'] || '';
+            var ftimeStr = campusMinsToStr(fs) + ' \u2013 ' + campusMinsToStr(fe);
+            var fordered = (fn['Ordered Attendance'] || '').trim();
+            var factual  = (fn['Actual Attendance']  || '').trim();
+            var fattStr  = fordered ? ' \u00b7 ' + fordered + (factual ? '/' + factual : '') + ' guests' : '';
+            var fnBlock  = '<div class="campus-timeline-block"' +
+                           ' style="left:' + fLeft.toFixed(2) + '%;width:' + fWidth.toFixed(2) + '%;top:5px;bottom:5px;cursor:default;background:linear-gradient(135deg,#5b6abf,#3d4da8)"' +
+                           ' data-fn-name="'    + campusEsc(fname)                         + '"' +
+                           ' data-fn-space="'   + campusEsc(fn['Space Description'] || '') + '"' +
+                           ' data-fn-venue="'   + campusEsc(fn['Venue'] || '')             + '"' +
+                           ' data-fn-start="'   + campusEsc(campusMinsToStr(fs))           + '"' +
+                           ' data-fn-end="'     + campusEsc(campusMinsToStr(fe))           + '"' +
+                           ' data-fn-ordered="' + campusEsc(fordered)                      + '"' +
+                           ' data-fn-actual="'  + campusEsc(factual)                       + '"' +
+                           ' onmouseenter="campusFnShowHover(event,this)"' +
+                           ' onmousemove="campusMoveHover(event)"' +
+                           ' onmouseleave="campusHideHover()">' +
+                           '<div class="campus-timeline-block-inner">' +
+                           '<div class="campus-timeline-block-title">' + campusEsc(fname) + '</div>' +
+                           '<div class="campus-timeline-block-time">' + campusEsc(ftimeStr + fattStr) + '</div>' +
+                           '</div></div>';
+            return '<div class="campus-fn-expand-sub-row">' +
+                   '<div class="campus-fn-expand-sub-lbl"><span>' + campusEsc(fname || '\u2014') + '</span></div>' +
+                   '<div class="campus-fn-expand-sub-trk">' + gridLines + fnBlock + '</div>' +
+                   '</div>';
+          }).join('');
+          expandPanels += '<div class="campus-fn-expand" id="campus-fn-expand-' + idx + '" style="display:none">' +
+                          '<div class="campus-fn-expand-hdr">Functions</div>' +
+                          subRows + '</div>';
+        }
       });
-      var rowClass = 'campus-timeline-row' + (hasComment ? ' campus-timeline-row--tall' : '');
-      html += '<div class="' + rowClass + '">' +
+      html += '<div>' +
+              '<div class="campus-timeline-row" style="min-height:' + rowMinH + 'px">' +
               '<div class="campus-timeline-label">' + campusEsc(space) + '</div>' +
               '<div class="campus-timeline-track">' + gridLines + nowLine + blocks + '</div>' +
-              '</div>';
+              '</div>' + expandPanels + '</div>';
     });
   });
 
@@ -883,6 +1054,40 @@ function campusSetVenue(v) {
     b.classList.toggle('active', b.textContent.trim() === (v || 'All'));
   });
   campusRenderBookings();
+}
+
+function campusBuildFunctionsVenueFilter() {
+  var el = document.getElementById('campus-venue-filter-functions');
+  el.innerHTML = '<span class="campus-venue-filter-label">Venue:</span>' +
+    '<button class="campus-venue-btn active" onclick="campusSetFunctionsVenue(\'\')">All</button>' +
+    CAMPUS_VENUE_LIST.map(function(v) {
+      return '<button class="campus-venue-btn" onclick="campusSetFunctionsVenue(\'' + v.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">' + campusEsc(v) + '</button>';
+    }).join('');
+}
+function campusSetFunctionsVenue(v) {
+  campusFunctionsVenue = v;
+  campusHideHover();
+  document.querySelectorAll('#campus-venue-filter-functions .campus-venue-btn').forEach(function(b) {
+    b.classList.toggle('active', b.textContent.trim() === (v || 'All'));
+  });
+  campusRenderFunctions();
+}
+
+function campusBuildMonthVenueFilter() {
+  var el = document.getElementById('campus-venue-filter-month');
+  el.innerHTML = '<span class="campus-venue-filter-label">Venue:</span>' +
+    '<button class="campus-venue-btn active" onclick="campusSetMonthVenue(\'\')">All</button>' +
+    CAMPUS_VENUE_LIST.map(function(v) {
+      return '<button class="campus-venue-btn" onclick="campusSetMonthVenue(\'' + v.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">' + campusEsc(v) + '</button>';
+    }).join('');
+}
+function campusSetMonthVenue(v) {
+  campusMonthVenue = v;
+  campusHideHover();
+  document.querySelectorAll('#campus-venue-filter-month .campus-venue-btn').forEach(function(b) {
+    b.classList.toggle('active', b.textContent.trim() === (v || 'All'));
+  });
+  campusRenderMonthView();
 }
 
 // =============================================================
@@ -952,24 +1157,19 @@ function campusRenderBookings() {
 // =============================================================
 // FUNCTIONS RENDER
 // =============================================================
-var CAMPUS_FN_COLS = [
-  { label: 'Event',   key: 'Event Name' },
-  { label: 'Space',   key: 'Space Description' },
-  { label: 'Start',   get: function(r) { return campusMinsToStr(campusParseTimeISO(r['Start Time'])); } },
-  { label: 'End',     get: function(r) { return campusMinsToStr(campusParseTimeISO(r['End Time'])); } },
-  { label: 'Ordered', key: 'Ordered Attendance' },
-  { label: 'Actual',  key: 'Actual Attendance' }
-];
-
 function campusRenderFunctions() {
   document.getElementById('campus-label-functions').textContent = campusFmtDate(campusFunctionsDate);
   campusRenderWeekStrip('functions');
   if (campusCalOpen && campusCalWhich === 'functions') campusRenderCalGrid();
 
   campusFadeRender('campus-functions', function(el) {
+    // Filter to selected date; skip rows with blank Space Description
     var filtered = campusAllFunctions.filter(function(r) {
       var d = campusParseISODate(r['Start Date']);
-      return d && campusSameDay(d, campusFunctionsDate);
+      if (!d || !campusSameDay(d, campusFunctionsDate)) return false;
+      if ((r['Space Description'] || '').trim() === '') return false;
+      if (campusFunctionsVenue && (r['Venue'] || '').trim() !== campusFunctionsVenue) return false;
+      return true;
     });
     filtered.sort(function(a,b) { return (campusParseTimeISO(a['Start Time'])||0) - (campusParseTimeISO(b['Start Time'])||0); });
 
@@ -985,15 +1185,85 @@ function campusRenderFunctions() {
       el.innerHTML = '<div class="campus-empty">' + CAMPUS_EMPTY_SVG + '<p>No functions for this date.</p></div>';
       return;
     }
-    var html = '<table class="campus-table"><thead><tr>';
-    CAMPUS_FN_COLS.forEach(function(c) { html += '<th>' + c.label + '</th>'; });
-    html += '</tr></thead><tbody>';
-    filtered.forEach(function(r) {
-      html += '<tr>';
-      CAMPUS_FN_COLS.forEach(function(c) { html += '<td>' + campusEsc(c.get ? c.get(r) : (r[c.key] || '')) + '</td>'; });
-      html += '</tr>';
+
+    // Group by venue → space (using Venue column directly from functions data)
+    var venueMap = {};
+    filtered.forEach(function(fn) {
+      var sp = (fn['Space Description'] || '').trim();
+      var v  = (fn['Venue'] || 'Other').trim();
+      if (!venueMap[v]) venueMap[v] = {};
+      if (!venueMap[v][sp]) venueMap[v][sp] = [];
+      venueMap[v][sp].push(fn);
     });
-    html += '</tbody></table>';
+
+    var totalMins = (TIMELINE_END_HR - TIMELINE_START_HR) * 60;
+    var numHours  = TIMELINE_END_HR - TIMELINE_START_HR;
+
+    var gridLines = '';
+    for (var g = 1; g < numHours; g++) {
+      gridLines += '<div class="campus-timeline-gridline" style="left:' + (g / numHours * 100).toFixed(3) + '%"></div>';
+    }
+
+    var html = '<div class="campus-timeline"><div class="campus-timeline-header">';
+    for (var h = TIMELINE_START_HR; h <= TIMELINE_END_HR; h++) {
+      var lbl = h === 12 ? '12pm' : h < 12 ? h + 'am' : (h-12) + 'pm';
+      html += '<div class="campus-timeline-hour">' + lbl + '</div>';
+    }
+    html += '</div><div class="campus-timeline-rows">';
+
+    var orderedVenues = CAMPUS_VENUE_LIST.filter(function(v) { return venueMap[v]; });
+    Object.keys(venueMap).forEach(function(v) {
+      if (orderedVenues.indexOf(v) === -1) orderedVenues.push(v);
+    });
+
+    orderedVenues.forEach(function(venue) {
+      var spaceMap = venueMap[venue];
+      var spaces   = Object.keys(spaceMap).sort();
+
+      html += '<div class="campus-timeline-venue-hdr">' +
+              '<div class="campus-timeline-venue-lbl"><span>' + campusEsc(venue) + '</span></div>' +
+              '<div class="campus-timeline-venue-trk">' + gridLines + '</div>' +
+              '</div>';
+
+      spaces.forEach(function(space) {
+        var fns    = spaceMap[space];
+        var blocks = '';
+        fns.forEach(function(fn) {
+          var start = campusParseTimeISO(fn['Start Time']);
+          var end   = campusParseTimeISO(fn['End Time']);
+          if (start === null || end === null || end <= start) return;
+          var leftPct  = Math.max(0, (start - TIMELINE_START_HR * 60) / totalMins * 100);
+          var widthPct = Math.min(100 - leftPct, (end - start) / totalMins * 100);
+          var name    = fn['Event Name'] || '';
+          var timeStr = campusMinsToStr(start) + ' \u2013 ' + campusMinsToStr(end);
+          var ordered = (fn['Ordered Attendance'] || '').trim();
+          var actual  = (fn['Actual Attendance']  || '').trim();
+          var attStr  = ordered ? ' \u00b7 ' + ordered + (actual ? '/' + actual : '') + ' guests' : '';
+          blocks += '<div class="campus-timeline-block"' +
+                    ' style="left:' + leftPct.toFixed(2) + '%;width:' + widthPct.toFixed(2) + '%;background:linear-gradient(135deg,#5b6abf,#3d4da8)"' +
+                    ' data-fn-name="'    + campusEsc(name)                         + '"' +
+                    ' data-fn-space="'   + campusEsc(fn['Space Description'] || '') + '"' +
+                    ' data-fn-venue="'   + campusEsc(fn['Venue'] || '')             + '"' +
+                    ' data-fn-start="'   + campusEsc(campusMinsToStr(start))        + '"' +
+                    ' data-fn-end="'     + campusEsc(campusMinsToStr(end))          + '"' +
+                    ' data-fn-ordered="' + campusEsc(ordered)                       + '"' +
+                    ' data-fn-actual="'  + campusEsc(actual)                        + '"' +
+                    ' onmouseenter="campusFnShowHover(event,this)"' +
+                    ' onmousemove="campusMoveHover(event)"' +
+                    ' onmouseleave="campusHideHover()">' +
+                    '<div class="campus-timeline-block-inner">' +
+                    '<div class="campus-timeline-block-title">' + campusEsc(name) + '</div>' +
+                    '<div class="campus-timeline-block-time">' + campusEsc(timeStr + attStr) + '</div>' +
+                    '</div></div>';
+        });
+        html += '<div class="campus-timeline-row">' +
+                '<div class="campus-timeline-label">' + campusEsc(space) + '</div>' +
+                '<div class="campus-timeline-track">' + gridLines + blocks + '</div>' +
+                '</div>';
+      });
+    });
+
+    html += '</div></div>';
     el.innerHTML = html;
   });
 }
@@ -1021,7 +1291,7 @@ function campusRenderMonthView() {
     var isToday  = campusSameDay(date, today);
     var isActive = campusSameDay(date, campusBookingsDate);
     var cls      = 'campus-month-day' + (isToday ? ' today' : '') + (isActive ? ' active' : '');
-    var stats    = campusGetDayStats(date);
+    var stats    = campusGetDayStats(date, campusMonthVenue);
     var busy     = campusBusynessStyle(stats.count, stats.attendance);
     var statsHtml = '';
     if (stats.count > 0) {
@@ -1029,15 +1299,47 @@ function campusRenderMonthView() {
       statsHtml = '<div class="campus-month-day-stats">' +
         '<div><span class="campus-month-busy-dot" style="background:' + dotColor + '"></span>' +
         stats.count + ' booking' + (stats.count !== 1 ? 's' : '') + '</div>' +
+        (stats.events > 0 ? '<div style="padding-left:10px;font-size:0.6rem;opacity:0.8">' + stats.events + ' event' + (stats.events !== 1 ? 's' : '') + '</div>' : '') +
         (stats.attendance > 0 ? '<div style="padding-left:10px;font-size:0.6rem;opacity:0.8">' + stats.attendance.toLocaleString() + ' guests</div>' : '') +
         '</div>';
     }
-    html += '<div class="' + cls + '" onclick="campusGoDateMonth(' + campusMonthYear + ',' + campusMonthMonth + ',' + d + ')">' +
+    html += '<div class="' + cls + '"' +
+            ' onclick="campusGoDateMonth(' + campusMonthYear + ',' + campusMonthMonth + ',' + d + ')"' +
+            ' onmouseenter="campusMonthDayHover(event,' + campusMonthYear + ',' + campusMonthMonth + ',' + d + ')"' +
+            ' onmousemove="campusMoveHover(event)"' +
+            ' onmouseleave="campusHideHover()">' +
             '<div class="campus-month-day-num">' + d + '</div>' + statsHtml + '</div>';
   }
   html += '</div>';
   el.innerHTML = html;
 }
+function campusMonthDayHover(evt, y, m, d) {
+  var date = new Date(y, m, d);
+  var eventMap = {};
+  campusAllBookings.forEach(function(b) {
+    var bd = campusParseBookingDate(b['Date']);
+    if (!bd || !campusSameDay(bd, date)) return;
+    if (/cancelled/i.test(b['Status - Event'] || '')) return;
+    if (campusMonthVenue && (b['Venue'] || '').trim() !== campusMonthVenue) return;
+    var name = (b['Event Description'] || b['Account Name'] || 'Unknown').trim();
+    if (!eventMap[name]) eventMap[name] = b['Status - Event'] || '';
+  });
+  var names = Object.keys(eventMap);
+  if (!names.length) return;
+  var html = names.map(function(name) {
+    var col = campusStatusColor(eventMap[name]);
+    return '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px">' +
+           '<span style="font-size:0.74rem;font-weight:600;line-height:1.3">' + campusEsc(name) + '</span>' +
+           (eventMap[name]
+             ? '<span style="flex-shrink:0;background:' + col.solid + ';color:#fff;border-radius:8px;padding:1px 7px;font-size:0.62rem;font-weight:600">' + campusEsc(eventMap[name]) + '</span>'
+             : '') +
+           '</div>';
+  }).join('');
+  campusHoverTipEl.innerHTML = html;
+  campusHoverTipEl.style.display = 'block';
+  campusPositionHover(evt);
+}
+
 function campusNavMonthView(delta) {
   campusMonthMonth += delta;
   if (campusMonthMonth > 11) { campusMonthMonth = 0; campusMonthYear++; }
@@ -1077,52 +1379,53 @@ function campusRenderCards() {
       return;
     }
 
-    // Group bookings by organisation (Account Name)
-    var orgMap = {};
+    // Group bookings by Event Description
+    var eventMap = {};
     filtered.forEach(function(b) {
-      var org = (b['Account Name'] || 'Unknown').trim();
-      if (!orgMap[org]) orgMap[org] = { bookings: [], contact: '', phone: '' };
-      orgMap[org].bookings.push(b);
-      if (!orgMap[org].contact && (b['Contact - Full Name'] || '').trim()) {
-        orgMap[org].contact = b['Contact - Full Name'].trim();
-        orgMap[org].phone   = (b['Contact - Phone'] || '').trim();
+      var evt = (b['Event Description'] || b['Account Name'] || 'Unknown').trim();
+      if (!eventMap[evt]) eventMap[evt] = { bookings: [], contact: '', phone: '', account: '' };
+      eventMap[evt].bookings.push(b);
+      if (!eventMap[evt].contact && (b['Contact - Full Name'] || '').trim()) {
+        eventMap[evt].contact = b['Contact - Full Name'].trim();
+        eventMap[evt].phone   = (b['Contact - Phone'] || '').trim();
+      }
+      if (!eventMap[evt].account && (b['Account Name'] || '').trim()) {
+        eventMap[evt].account = b['Account Name'].trim();
       }
     });
 
-    // Sort orgs by earliest booking start time
-    var orgs = Object.keys(orgMap).sort(function(a, b) {
-      return (campusParseTime12(orgMap[a].bookings[0]['Start Time']) || 0) -
-             (campusParseTime12(orgMap[b].bookings[0]['Start Time']) || 0);
+    // Sort events by earliest booking start time
+    var events = Object.keys(eventMap).sort(function(a, b) {
+      return (campusParseTime12(eventMap[a].bookings[0]['Start Time']) || 0) -
+             (campusParseTime12(eventMap[b].bookings[0]['Start Time']) || 0);
     });
 
     var html = '<div class="campus-cards-grid">';
-    orgs.forEach(function(org) {
-      var data = orgMap[org];
+    events.forEach(function(evt) {
+      var data = eventMap[evt];
       data.bookings.sort(function(a, b) {
         return (campusParseTime12(a['Start Time']) || 0) - (campusParseTime12(b['Start Time']) || 0);
       });
-      html += '<div class="campus-card">' +
-              '<div class="campus-card-hdr"><div class="campus-card-org">' + campusEsc(org) + '</div></div>' +
+      var cardCol = campusStatusColor(data.bookings[0]['Status - Event']);
+      html += '<div class="campus-card" style="border-left:4px solid ' + cardCol.solid + '">' +
+              '<div class="campus-card-hdr"><div class="campus-card-org">' + campusEsc(evt) + '</div></div>' +
               '<div class="campus-card-body">';
       data.bookings.forEach(function(b) {
         var start   = campusParseTime12(b['Start Time']);
         var end     = campusParseTime12(b['End Time']);
         var timeStr = campusMinsToStr(start) + ' \u2013 ' + campusMinsToStr(end);
         var space   = (b['Space'] || '').trim();
-        var desc    = (b['Event Description'] || '').trim();
         var col     = campusStatusColor(b['Status - Event']);
         html += '<div class="campus-card-booking">' +
-                '<div>' +
                 '<div class="campus-card-space-name">' +
                 '<span class="campus-card-status-dot" style="background:' + col.solid + '"></span>' +
-                campusEsc(space || desc || '\u2014') + '</div>' +
-                (desc && space ? '<div class="campus-card-event-desc">' + campusEsc(desc) + '</div>' : '') +
-                '</div>' +
+                campusEsc(space || '\u2014') + '</div>' +
                 '<div class="campus-card-time">' + campusEsc(timeStr) + '</div>' +
                 '</div>';
       });
       html += '</div>' +
               '<div class="campus-card-footer">' +
+              (data.account ? '<span>' + campusEsc(data.account) + '</span>' : '') +
               (data.contact ? '<span class="campus-card-contact-name">' + campusEsc(data.contact) + '</span>' : '<span style="color:#bbb;font-style:italic">No contact</span>') +
               (data.phone   ? '<span>' + campusEsc(data.phone) + '</span>' : '') +
               '</div></div>';
@@ -1160,6 +1463,8 @@ function campusCSVtoObj(rows) {
 // INIT
 // =============================================================
 campusBuildVenueFilter();
+campusBuildFunctionsVenueFilter();
+campusBuildMonthVenueFilter();
 campusBuildStatusLegend();
 
 // Set labels, week strips, and skeleton immediately — data loads async
@@ -1178,6 +1483,7 @@ fetch(CAMPUS_BOOKINGS_URL)
   .then(function(data) {
     campusAllBookings = data;
     campusRenderBookings();
+    campusRenderCards();
     // Refresh other strips so busyness dots appear immediately
     campusRenderWeekStrip('functions');
     campusRenderWeekStrip('cards');
