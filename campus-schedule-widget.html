@@ -939,11 +939,11 @@ function campusRenderTimeline(bookings) {
       var hasComment = spBookings.some(function(b) { return (b['System Comment'] || '').trim(); });
       var depths   = campusStackDepths(spBookings);
       var maxDepth = depths.reduce(function(m, d) { return Math.max(m, d); }, 0);
-      var rowMinH  = (hasComment ? 74 : 56) + maxDepth * 10;
+      var rowMinH  = (hasComment ? 74 : 56) + maxDepth * 22;
       var blocks = '', expandPanels = '';
       spBookings.forEach(function(b, bi) {
         var depth = depths[bi];
-        var topPx = 7 + depth * 7;
+        var topPx = 7 + depth * 22;
         var idx   = bookings.indexOf(b);
         var start = campusParseTime12(b['Start Time']);
         var end   = campusParseTime12(b['End Time']);
