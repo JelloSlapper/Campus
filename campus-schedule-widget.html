@@ -833,6 +833,30 @@ function campusFadeRender(elId, renderFn) {
 // =============================================================
 // TIMELINE
 // =============================================================
+// Assigns each booking a stack depth (0 = back, 1 = one in front, …) using
+// first-fit lane assignment so non-overlapping bookings can share a depth.
+function campusStackDepths(spBookings) {
+  var n = spBookings.length;
+  var times = spBookings.map(function(b) {
+    return { s: campusParseTime12(b['Start Time']), e: campusParseTime12(b['End Time']) };
+  });
+  var depths = [];
+  for (var i = 0; i < n; i++) {
+    var ti = times[i];
+    if (ti.s === null || ti.e === null || ti.e <= ti.s) { depths.push(0); continue; }
+    var used = {};
+    for (var j = 0; j < i; j++) {
+      var tj = times[j];
+      if (tj.s === null || tj.e === null) continue;
+      if (Math.max(ti.s, tj.s) < Math.min(ti.e, tj.e)) used[depths[j]] = true;
+    }
+    var d = 0;
+    while (used[d]) d++;
+    depths.push(d);
+  }
+  return depths;
+}
+
 var CAMPUS_EMPTY_SVG =
   '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5">' +
   '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>' +
@@ -911,10 +935,14 @@ function campusRenderTimeline(bookings) {
 
     spaces.forEach(function(space) {
       var spBookings = spaceMap[space];
-      // Taller row if any booking in this row has a comment (3 lines of text)
       var hasComment = spBookings.some(function(b) { return (b['System Comment'] || '').trim(); });
+      var depths   = campusStackDepths(spBookings);
+      var maxDepth = depths.reduce(function(m, d) { return Math.max(m, d); }, 0);
+      var rowMinH  = (hasComment ? 74 : 56) + maxDepth * 10;
       var blocks = '', expandPanels = '';
-      spBookings.forEach(function(b) {
+      spBookings.forEach(function(b, bi) {
+        var depth = depths[bi];
+        var topPx = 7 + depth * 7;
         var idx   = bookings.indexOf(b);
         var start = campusParseTime12(b['Start Time']);
         var end   = campusParseTime12(b['End Time']);
@@ -935,7 +963,7 @@ function campusRenderTimeline(bookings) {
           ? '<button id="campus-fn-btn-' + idx + '" class="campus-fn-expand-btn" onclick="campusToggleFnExpand(event,' + idx + ')" title="Show ' + matchedFns.length + ' function' + (matchedFns.length !== 1 ? 's' : '') + '">+' + matchedFns.length + '</button>'
           : '';
         blocks += '<div class="campus-timeline-block"' +
-                  ' style="left:' + leftPct.toFixed(2) + '%;width:' + widthPct.toFixed(2) + '%;background:' + col.grad + '"' +
+                  ' style="left:' + leftPct.toFixed(2) + '%;width:' + widthPct.toFixed(2) + '%;top:' + topPx + 'px;bottom:7px;z-index:' + (depth + 1) + ';background:' + col.grad + '"' +
                   ' onclick="campusShowPopup(event,' + idx + ')"' +
                   ' onmouseenter="campusShowHover(event,' + idx + ')"' +
                   ' onmousemove="campusMoveHover(event)"' +
@@ -982,9 +1010,8 @@ function campusRenderTimeline(bookings) {
                           subRows + '</div>';
         }
       });
-      var rowClass = 'campus-timeline-row' + (hasComment ? ' campus-timeline-row--tall' : '');
       html += '<div>' +
-              '<div class="' + rowClass + '">' +
+              '<div class="campus-timeline-row" style="min-height:' + rowMinH + 'px">' +
               '<div class="campus-timeline-label">' + campusEsc(space) + '</div>' +
               '<div class="campus-timeline-track">' + gridLines + nowLine + blocks + '</div>' +
               '</div>' + expandPanels + '</div>';
