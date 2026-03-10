@@ -267,27 +267,33 @@
   /* --- Timeline block expand button --- */
   .campus-fn-expand-btn {
     position: absolute; top: 3px; right: 4px;
-    width: 16px; height: 16px; border-radius: 50%;
+    min-width: 18px; height: 16px; border-radius: 8px;
     background: rgba(255,255,255,0.25); color: #fff;
     border: 1px solid rgba(255,255,255,0.5);
-    font-size: 0.72rem; font-weight: 700; line-height: 1;
-    cursor: pointer; font-family: inherit; padding: 0;
-    display: flex; align-items: center; justify-content: center;
-    z-index: 2; transition: background 0.15s;
+    font-size: 0.68rem; font-weight: 700; line-height: 16px;
+    cursor: pointer; font-family: inherit; padding: 0 4px;
+    white-space: nowrap; z-index: 2; transition: background 0.15s;
   }
   .campus-fn-expand-btn:hover { background: rgba(255,255,255,0.45); }
 
-  /* --- Function expansion panel (shown below a space row) --- */
-  .campus-fn-expand {
-    margin-left: 190px; border: 1px solid #d0d8e8; border-top: none;
-    background: #f0f4fb; padding: 8px 14px; font-size: 0.78rem;
+  /* --- Function expansion sub-timeline --- */
+  .campus-fn-expand { border-top: 2px solid #5b6abf; background: #f3f5fd; }
+  .campus-fn-expand-hdr {
+    padding: 4px 12px 4px 202px;
+    font-size: 0.64rem; font-weight: 700; color: #5b6abf;
+    text-transform: uppercase; letter-spacing: 0.07em;
+    background: rgba(91,106,191,0.07); border-bottom: 1px solid #dce4f0;
   }
-  .campus-fn-expand-title { font-weight: 600; color: #3d4da8; margin-bottom: 6px; font-size: 0.79rem; }
-  .campus-fn-expand-row { display: flex; gap: 12px; padding: 4px 0; border-bottom: 1px solid #dce4f0; align-items: center; }
-  .campus-fn-expand-row:last-child { border-bottom: none; }
-  .campus-fn-expand-name { flex: 1; color: #333; }
-  .campus-fn-expand-time { color: #555; white-space: nowrap; }
-  .campus-fn-expand-att  { color: #888; white-space: nowrap; font-size: 0.72rem; }
+  .campus-fn-expand-sub-row { display: flex; min-height: 40px; border-bottom: 1px solid #e4e8f4; align-items: stretch; }
+  .campus-fn-expand-sub-row:last-child { border-bottom: none; }
+  .campus-fn-expand-sub-lbl {
+    width: 190px; min-width: 190px; font-size: 0.71rem; color: #3d4da8; font-weight: 500;
+    padding: 0 12px 0 20px; display: flex; align-items: center;
+    border-right: 1px solid #dce4f0; background: rgba(61,77,168,0.04);
+    overflow: hidden;
+  }
+  .campus-fn-expand-sub-lbl span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .campus-fn-expand-sub-trk { flex: 1; position: relative; min-height: 40px; }
 
   /* --- States --- */
   .campus-empty { text-align: center; padding: 3rem 1rem; }
@@ -674,6 +680,32 @@ function campusShowHover(evt, idx) {
 }
 function campusMoveHover(evt)  { campusPositionHover(evt); }
 function campusHideHover()     { campusHoverTipEl.style.display = 'none'; }
+
+// Rich hover card for function blocks (reads data-fn-* attributes)
+function campusFnShowHover(evt, el) {
+  var name    = el.getAttribute('data-fn-name')    || '\u2014';
+  var space   = el.getAttribute('data-fn-space')   || '';
+  var venue   = el.getAttribute('data-fn-venue')   || '';
+  var start   = el.getAttribute('data-fn-start')   || '';
+  var end     = el.getAttribute('data-fn-end')     || '';
+  var ordered = el.getAttribute('data-fn-ordered') || '';
+  var actual  = el.getAttribute('data-fn-actual')  || '';
+  var timeStr = (start && end) ? start + ' \u2013 ' + end : (start || end);
+  campusHoverTipEl.innerHTML =
+    '<div style="font-weight:700;margin-bottom:4px;font-size:0.79rem">' + campusEsc(name) + '</div>' +
+    (timeStr ? '<div style="opacity:0.8;font-size:0.71rem;margin-bottom:5px">' + campusEsc(timeStr) + '</div>' : '') +
+    (space   ? '<div style="font-size:0.71rem;margin-bottom:2px"><span style="opacity:0.55">Space: </span>' + campusEsc(space) + '</div>' : '') +
+    (venue   ? '<div style="font-size:0.71rem;margin-bottom:2px"><span style="opacity:0.55">Venue: </span>' + campusEsc(venue) + '</div>' : '') +
+    ((ordered || actual) ?
+      '<div style="font-size:0.71rem;margin-top:6px;padding-top:5px;border-top:1px solid rgba(255,255,255,0.18)">' +
+      (ordered ? '<span style="opacity:0.55">Ordered: </span>' + campusEsc(ordered) : '') +
+      (ordered && actual ? '&nbsp;&nbsp;' : '') +
+      (actual  ? '<span style="opacity:0.55">Actual: </span>'  + campusEsc(actual) : '') +
+      '</div>' : '');
+  campusHoverTipEl.style.display = 'block';
+  campusPositionHover(evt);
+}
+
 function campusPositionHover(evt) {
   var x = evt.clientX + 14, y = evt.clientY - 62;
   if (x + 230 > window.innerWidth)  x = evt.clientX - 240;
@@ -893,9 +925,14 @@ function campusRenderTimeline(bookings) {
         var comment = (b['System Comment'] || '').trim();
         var timeStr = campusMinsToStr(start) + ' \u2013 ' + campusMinsToStr(end);
         var col     = campusStatusColor(b['Status - Event']);
-        var matchedFns = campusFnsForBooking(b);
+        // Only include functions whose time overlaps this booking
+        var matchedFns = campusFnsForBooking(b).filter(function(fn) {
+          var fs = campusParseTimeISO(fn['Start Time']);
+          var fe = campusParseTimeISO(fn['End Time']);
+          return fs !== null && fe !== null && Math.max(start, fs) < Math.min(end, fe);
+        });
         var expandBtn = matchedFns.length > 0
-          ? '<button id="campus-fn-btn-' + idx + '" class="campus-fn-expand-btn" onclick="campusToggleFnExpand(event,' + idx + ')" title="Show functions">+</button>'
+          ? '<button id="campus-fn-btn-' + idx + '" class="campus-fn-expand-btn" onclick="campusToggleFnExpand(event,' + idx + ')" title="Show ' + matchedFns.length + ' function' + (matchedFns.length !== 1 ? 's' : '') + '">+' + matchedFns.length + '</button>'
           : '';
         blocks += '<div class="campus-timeline-block"' +
                   ' style="left:' + leftPct.toFixed(2) + '%;width:' + widthPct.toFixed(2) + '%;background:' + col.grad + '"' +
@@ -909,21 +946,40 @@ function campusRenderTimeline(bookings) {
                   '<div class="campus-timeline-block-time">' + timeStr + '</div>' +
                   '</div>' + expandBtn + '</div>';
         if (matchedFns.length > 0) {
-          var panelRows = matchedFns.map(function(fn) {
+          var subRows = matchedFns.map(function(fn) {
             var fs = campusParseTimeISO(fn['Start Time']);
             var fe = campusParseTimeISO(fn['End Time']);
-            var fnTime  = campusMinsToStr(fs) + ' \u2013 ' + campusMinsToStr(fe);
-            var ordered = (fn['Ordered Attendance'] || '').trim();
-            var actual  = (fn['Actual Attendance']  || '').trim();
-            return '<div class="campus-fn-expand-row">' +
-                   '<div class="campus-fn-expand-name">' + campusEsc(fn['Event Name'] || '\u2014') + '</div>' +
-                   '<div class="campus-fn-expand-time">' + campusEsc(fnTime) + '</div>' +
-                   (ordered ? '<div class="campus-fn-expand-att">' + campusEsc(ordered + (actual ? ' / ' + actual : '') + ' guests') + '</div>' : '') +
+            var fLeft    = Math.max(0, (fs - TIMELINE_START_HR * 60) / totalMins * 100);
+            var fWidth   = Math.min(100 - fLeft, (fe - fs) / totalMins * 100);
+            var fname    = fn['Event Name'] || '';
+            var ftimeStr = campusMinsToStr(fs) + ' \u2013 ' + campusMinsToStr(fe);
+            var fordered = (fn['Ordered Attendance'] || '').trim();
+            var factual  = (fn['Actual Attendance']  || '').trim();
+            var fattStr  = fordered ? ' \u00b7 ' + fordered + (factual ? '/' + factual : '') + ' guests' : '';
+            var fnBlock  = '<div class="campus-timeline-block"' +
+                           ' style="left:' + fLeft.toFixed(2) + '%;width:' + fWidth.toFixed(2) + '%;top:5px;bottom:5px;cursor:default;background:linear-gradient(135deg,#5b6abf,#3d4da8)"' +
+                           ' data-fn-name="'    + campusEsc(fname)                         + '"' +
+                           ' data-fn-space="'   + campusEsc(fn['Space Description'] || '') + '"' +
+                           ' data-fn-venue="'   + campusEsc(fn['Venue'] || '')             + '"' +
+                           ' data-fn-start="'   + campusEsc(campusMinsToStr(fs))           + '"' +
+                           ' data-fn-end="'     + campusEsc(campusMinsToStr(fe))           + '"' +
+                           ' data-fn-ordered="' + campusEsc(fordered)                      + '"' +
+                           ' data-fn-actual="'  + campusEsc(factual)                       + '"' +
+                           ' onmouseenter="campusFnShowHover(event,this)"' +
+                           ' onmousemove="campusMoveHover(event)"' +
+                           ' onmouseleave="campusHideHover()">' +
+                           '<div class="campus-timeline-block-inner">' +
+                           '<div class="campus-timeline-block-title">' + campusEsc(fname) + '</div>' +
+                           '<div class="campus-timeline-block-time">' + campusEsc(ftimeStr + fattStr) + '</div>' +
+                           '</div></div>';
+            return '<div class="campus-fn-expand-sub-row">' +
+                   '<div class="campus-fn-expand-sub-lbl"><span>' + campusEsc(fname || '\u2014') + '</span></div>' +
+                   '<div class="campus-fn-expand-sub-trk">' + gridLines + fnBlock + '</div>' +
                    '</div>';
           }).join('');
           expandPanels += '<div class="campus-fn-expand" id="campus-fn-expand-' + idx + '" style="display:none">' +
-                          '<div class="campus-fn-expand-title">' + campusEsc(desc) + ' \u2014 Functions</div>' +
-                          panelRows + '</div>';
+                          '<div class="campus-fn-expand-hdr">Functions</div>' +
+                          subRows + '</div>';
         }
       });
       var rowClass = 'campus-timeline-row' + (hasComment ? ' campus-timeline-row--tall' : '');
@@ -1053,19 +1109,11 @@ function campusRenderFunctions() {
       return;
     }
 
-    // Build space→venue lookup from bookings data
-    var spaceVenueMap = {};
-    campusAllBookings.forEach(function(b) {
-      var sp = (b['Space'] || '').trim();
-      var v  = (b['Venue'] || '').trim();
-      if (sp && v && !spaceVenueMap[sp]) spaceVenueMap[sp] = v;
-    });
-
-    // Group by venue → space
+    // Group by venue → space (using Venue column directly from functions data)
     var venueMap = {};
     filtered.forEach(function(fn) {
       var sp = (fn['Space Description'] || '').trim();
-      var v  = spaceVenueMap[sp] || 'Other';
+      var v  = (fn['Venue'] || 'Other').trim();
       if (!venueMap[v]) venueMap[v] = {};
       if (!venueMap[v][sp]) venueMap[v][sp] = [];
       venueMap[v][sp].push(fn);
@@ -1115,7 +1163,17 @@ function campusRenderFunctions() {
           var actual  = (fn['Actual Attendance']  || '').trim();
           var attStr  = ordered ? ' \u00b7 ' + ordered + (actual ? '/' + actual : '') + ' guests' : '';
           blocks += '<div class="campus-timeline-block"' +
-                    ' style="left:' + leftPct.toFixed(2) + '%;width:' + widthPct.toFixed(2) + '%;background:linear-gradient(135deg,#5b6abf,#3d4da8)">' +
+                    ' style="left:' + leftPct.toFixed(2) + '%;width:' + widthPct.toFixed(2) + '%;background:linear-gradient(135deg,#5b6abf,#3d4da8)"' +
+                    ' data-fn-name="'    + campusEsc(name)                         + '"' +
+                    ' data-fn-space="'   + campusEsc(fn['Space Description'] || '') + '"' +
+                    ' data-fn-venue="'   + campusEsc(fn['Venue'] || '')             + '"' +
+                    ' data-fn-start="'   + campusEsc(campusMinsToStr(start))        + '"' +
+                    ' data-fn-end="'     + campusEsc(campusMinsToStr(end))          + '"' +
+                    ' data-fn-ordered="' + campusEsc(ordered)                       + '"' +
+                    ' data-fn-actual="'  + campusEsc(actual)                        + '"' +
+                    ' onmouseenter="campusFnShowHover(event,this)"' +
+                    ' onmousemove="campusMoveHover(event)"' +
+                    ' onmouseleave="campusHideHover()">' +
                     '<div class="campus-timeline-block-inner">' +
                     '<div class="campus-timeline-block-title">' + campusEsc(name) + '</div>' +
                     '<div class="campus-timeline-block-time">' + campusEsc(timeStr + attStr) + '</div>' +
@@ -1313,6 +1371,7 @@ fetch(CAMPUS_BOOKINGS_URL)
   .then(function(data) {
     campusAllBookings = data;
     campusRenderBookings();
+    campusRenderCards();
     // Refresh other strips so busyness dots appear immediately
     campusRenderWeekStrip('functions');
     campusRenderWeekStrip('cards');
